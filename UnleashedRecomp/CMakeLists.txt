@@ -1,5 +1,7 @@
 project("UnleashedRecomp")
 
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lGL")
+
 if (WIN32)
     option(UNLEASHED_RECOMP_D3D12 "Add D3D12 support for rendering" ON)
 endif()
@@ -155,6 +157,7 @@ set(UNLEASHED_RECOMP_UI_CXX_SOURCES
     "ui/button_guide.cpp"
     "ui/fader.cpp"
     "ui/game_window.cpp"
+    "ui/tas_windows.cpp"
     "ui/imgui_utils.cpp"
     "ui/installer_wizard.cpp"
     "ui/message_window.cpp"
@@ -194,6 +197,7 @@ set(UNLEASHED_RECOMP_MOD_CXX_SOURCES
 
 set(UNLEASHED_RECOMP_THIRDPARTY_SOURCES
     "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/imgui/backends/imgui_impl_sdl2.cpp"
+    "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/imgui/backends/imgui_impl_opengl3.cpp"
     "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/imgui/imgui.cpp"
     "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/imgui/imgui_demo.cpp"
     "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/imgui/imgui_draw.cpp"
