@@ -5,6 +5,8 @@
 #include <app.h>
 #include <sdl_events.h>
 
+#include <ui/tas_windows.h>
+
 static uint32_t g_lastEnemyScore;
 static uint32_t g_lastTrickScore;
 static float g_lastDarkGaiaEnergy;
@@ -100,7 +102,7 @@ PPC_FUNC_IMPL(__imp__sub_823B49D8);
 PPC_FUNC(sub_823B49D8)
 {
     __imp__sub_823B49D8(ctx, base);
-
+    TASWindow::SetWerehogPointer((uintptr_t)ctx.r3.u32);
     App::s_isWerehog = true;
 
     SDL_User_EvilSonic(true);
@@ -113,6 +115,7 @@ PPC_FUNC(sub_823B4590)
     __imp__sub_823B4590(ctx, base);
 
     App::s_isWerehog = false;
+    TASWindow::SetWerehogPointer(0);
 
     SDL_User_EvilSonic(false);
 }
