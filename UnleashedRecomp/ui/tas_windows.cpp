@@ -9,6 +9,7 @@
 #include <kernel/function.h>
 #include <cpu/guest_stack_var.h>
 #include <SWA.inl>
+#include <gpu/imgui/imgui_snapshot.h>
 
 #define deadzone(num) fabs(num) < 1e-6 ? 0.0: num
 
@@ -17,6 +18,8 @@ uint8_t *savedBase{};
 
 PPCContext saved2Ctx;
 uint8_t *saved2Base{};
+
+float fontsize = 1.0f;
 
 PPC_FUNC_IMPL(__imp__sub_827B62E0);
 PPC_FUNC(sub_827B62E0)
@@ -56,26 +59,33 @@ PPC_FUNC(sub_827B69A0)
 }
 
 void TASWindow::Update()
-{
+{   
+    // i highkey copy and pasted this from some random skyth patch in the speedrun discord
+    ImFont* font = ImFontAtlasSnapshot::GetFont("FOT-SeuratPro-M.otf");
+    float defaultScale = font->Scale;
+    font->Scale = ImGui::GetDefaultFont()->FontSize / font->FontSize;
+    ImGui::PushFont(font);
+
     ImGui::SetNextWindowSize(ImVec2(260, 200), ImGuiCond_FirstUseEver);
     ImGui::Begin("Practice Tools", nullptr);
     //ImGui::Checkbox("Pause", &pause_game); this implementation is horrible
     //ImGui::SetItemTooltip("'q' to go next frame and pause key on keyboard to unpause");
     //ImGui::Checkbox("Show Context Pointers", &showPointers);
     //ImGui::SetItemTooltip("This is useful if you want to use Cheat Engine to find some values");
+    //ImGui::InputFloat("Fontsize", &fontsize, 0.1f, 0.5f, "%.1f");
     ImGui::Text("");
 
-
-    if (ImGui::Button("Save Position") || DPAD_DOWN) {
+    uint32_t playerSpeedContext = *(be<uint32_t>*)g_memory.Translate(0x83362F98);
+    if (ImGui::Button("Save Position") || DPAD_DOWN && (playerSpeedContext != NULL || werehogPointer != NULL)) {
         if(position != NULL) SavePosition();
         else std::cout << "position is null" << std::endl;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Load Position") || DPAD_UP){
+    if ((ImGui::Button("Load Position") || DPAD_UP) && (playerSpeedContext != NULL || werehogPointer != NULL)){
         if(position != NULL) LoadPosition();
         else std::cout << "position is null" << std::endl;
     }
-    if (ImGui::Button("Restart") || DPAD_RIGHT) {
+    if (ImGui::Button("Restart") || DPAD_RIGHT && (playerSpeedContext != NULL || werehogPointer != NULL)) {
         GuestToHostFunction<void>(sub_827B62E0, savedCtx.r3.u32, savedCtx.r4.u32);
     }
     /* can't figure out how to get the pointer in r3 without storing it in a hook rn
@@ -84,9 +94,6 @@ void TASWindow::Update()
         GuestToHostFunction<void>(sub_825F5E40, saved2Ctx.r3.u32, saved2Ctx.r4.u32);
     }
 */
-
-    uint32_t playerSpeedContext = *(be<uint32_t>*)g_memory.Translate(0x83362F98);
-
     if (playerSpeedContext != NULL)
     {
         ShowValues(playerSpeedContext);
@@ -95,7 +102,9 @@ void TASWindow::Update()
     if(werehogPointer != NULL){
         ShowValues(werehogPointer);
     }
-    
+
+    ImGui::PopFont();
+    font->Scale = defaultScale;
     ImGui::End();
 }
 
