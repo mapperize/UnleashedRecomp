@@ -32,6 +32,7 @@
 #include <sdl_listener.h>
 #include <xxHashMap.h>
 #include <os/process.h>
+#include <ui/tas_windows.h>
 
 #if defined(ASYNC_PSO_DEBUG) || defined(PSO_CACHING)
 #include <magic_enum/magic_enum.hpp>
@@ -2539,7 +2540,7 @@ static void DrawFPS()
 static void DrawImGui()
 {
     ImGui_ImplSDL2_NewFrame();
-
+    
     auto& io = ImGui::GetIO();
     io.DisplaySize = { float(Video::s_viewportWidth), float(Video::s_viewportHeight) };
 
@@ -2572,7 +2573,7 @@ static void DrawImGui()
     }
 
     ImGui::NewFrame();
-
+    TASWindow::Update();
     ResetImGuiCallbacks();
 
 #ifdef ASYNC_PSO_DEBUG
