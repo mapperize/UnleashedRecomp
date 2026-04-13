@@ -9,17 +9,17 @@ struct Vector3 {
     be<float> w;
 };
 
-
-
 class TASWindow {
 public:
-    static void Init();
     static void Update();
     static void Shutdown();
     static void UpdateFrame();
     static void SavePosition();
     static void LoadPosition();
     static void SetWerehogPointer(uintptr_t ptr);
+    static inline bool DPAD_DOWN;
+    static inline bool DPAD_UP;
+    static inline bool DPAD_RIGHT;
     
 private:
     static void ShowValues(uintptr_t ptr);
