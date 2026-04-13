@@ -51,33 +51,31 @@ PPC_FUNC_IMPL(__imp__sub_827B69A0);
 PPC_FUNC(sub_827B69A0)
 {
     __imp__sub_827B69A0(ctx, base);
-    std::cout << "d cast caooed" << std::endl;
+    std::cout << "d cast called" << std::endl;
     std::cout << ctx.r3.u32 << " " << ctx.r4.u32 << " " << ctx.r5.u32 << std::endl;
 }
-
-
 
 void TASWindow::Update()
 {
     ImGui::SetNextWindowSize(ImVec2(260, 200), ImGuiCond_FirstUseEver);
-    
     ImGui::Begin("Practice Tools", nullptr);
     //ImGui::Checkbox("Pause", &pause_game); this implementation is horrible
-    ImGui::SetItemTooltip("'q' to go next frame and pause key on keyboard to unpause");
-    ImGui::Checkbox("Show Context Pointers", &showPointers);
-    ImGui::SetItemTooltip("This is useful if you want to use Cheat Engine to find some values");
+    //ImGui::SetItemTooltip("'q' to go next frame and pause key on keyboard to unpause");
+    //ImGui::Checkbox("Show Context Pointers", &showPointers);
+    //ImGui::SetItemTooltip("This is useful if you want to use Cheat Engine to find some values");
     ImGui::Text("");
 
-    if (ImGui::Button("Save Position")) {
+
+    if (ImGui::Button("Save Position") || DPAD_DOWN) {
         if(position != NULL) SavePosition();
         else std::cout << "position is null" << std::endl;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Load Position")) {
+    if (ImGui::Button("Load Position") || DPAD_UP){
         if(position != NULL) LoadPosition();
         else std::cout << "position is null" << std::endl;
     }
-    if (ImGui::Button("Restart")) {
+    if (ImGui::Button("Restart") || DPAD_RIGHT) {
         GuestToHostFunction<void>(sub_827B62E0, savedCtx.r3.u32, savedCtx.r4.u32);
     }
     /* can't figure out how to get the pointer in r3 without storing it in a hook rn
