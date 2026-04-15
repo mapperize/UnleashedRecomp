@@ -1153,3 +1153,9 @@ registers = ["f1"]
 name = "CEvilSonicContext_CStateWall_LeaveRotationMidAsmHook"
 address = 0x82406774
 registers = ["f1"]
+
+# Set Camera Position
+[[midasm_hook]]
+name = "CameraPositionMidAsmHook"
+address = 0x8247F430
+registers = ["f1"]

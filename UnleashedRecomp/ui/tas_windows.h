@@ -2,7 +2,8 @@
 #include <SDL.h>
 #include <imgui.h>
 
-struct Vector3 {
+
+struct Quaternion {
     be<float> x;
     be<float> y;
     be<float> z;
@@ -20,6 +21,7 @@ public:
     static inline bool DPAD_DOWN;
     static inline bool DPAD_UP;
     static inline bool DPAD_RIGHT;
+    static inline bool isInGame;
     
 private:
     static void ShowValues(uintptr_t ptr);
@@ -32,13 +34,14 @@ private:
 
     static inline uintptr_t werehogPointer;
 
-    static inline Vector3 *rotation;
-    static inline Vector3 *position;
-    static inline Vector3 *velocity;
+    static inline Quaternion *rotation;
+    static inline Quaternion *position;
+    static inline Quaternion *velocity;
 
-    static inline Vector3 savedRotation;
-    static inline Vector3 savedPosition;
-    static inline Vector3 savedVelocity;
+    static inline Quaternion savedRotation;
+    static inline Quaternion savedPosition;
+    static inline Quaternion savedVelocity;
+    
 };
 
 
