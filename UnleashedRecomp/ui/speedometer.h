@@ -94,27 +94,35 @@ void drawLine(ImVec2 loc, float rad, float thickness, float velocity, float maxV
 
 class Speedometer {
     public:
+        bool isEnabled = true;
+        bool freeWindowMode;
+        float scale = 1.0f;
         void Update(float velocity, double dt){
+            if (!isEnabled) return;
             ImGuiIO& io = ImGui::GetIO();
             ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 575, io.DisplaySize.y - 450), ImGuiCond_Appearing);
-            ImGuiWindowFlags flags =  ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar;
+            ImGuiWindowFlags flags;
+            if (freeWindowMode){
+                flags = ImGuiWindowFlags_NoBackground;
+            }
+            else {
+                flags = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar;
+            }
             ImGui::SetNextWindowSize(ImVec2(890, 500), ImGuiCond_FirstUseEver);
             ImGui::Begin("speedometer", nullptr, flags);
             time += dt;
-            drawSpeedometer(location, rad, thickness, velocity, maxVelo);
+            drawSpeedometer(location, rad * scale, thickness, velocity, maxVelo);
             drawLine(location, rad, thickness, velocity, maxVelo);
             ImGui::End();
         }
-        Speedometer(ImVec2 _location, double _animationDuration, float _thickness, float _maxVelo, int _rad) {
+        Speedometer(ImVec2 _location, float _thickness, float _maxVelo, int _rad) {
             location = _location;
-            animationDuration = _animationDuration;
             thickness = _thickness;
             maxVelo = _maxVelo;
             rad = _rad;
         }
     private:
         ImVec2 location;
-        double animationDuration;
         float thickness;
         float maxVelo;
         int rad;
