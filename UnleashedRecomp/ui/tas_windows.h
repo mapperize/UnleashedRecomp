@@ -2,6 +2,12 @@
 #include <SDL.h>
 #include <imgui.h>
 
+struct Vector3 {
+    double x;
+    double y; 
+    double z;
+};
+
 struct Quaternion {
     be<float> x;
     be<float> y;
@@ -9,7 +15,7 @@ struct Quaternion {
     be<float> w;
 };
 
-#define deadzone(num) fabs(num) < 1e-6 ? 0.0: num
+#define deadzone(num) fabs(num) < 1e-3 ? 0.0: num
 
 // I'm a printf engineer
 #define printHook(func) \
@@ -64,12 +70,12 @@ private:
     static inline bool s_show = true;
 
     static inline bool showPointers;
-    static inline bool freeWindowDataView;
     static inline bool showPos = true;
     static inline bool showVelo = true;
     static inline bool showSpeed = true;
-    static inline bool showHorizontalSpeed = true;
+    static inline bool showHorizontalSpeed = false;
     static inline bool showRot = false;
+    static inline bool showAccel = false;
 
     static inline float scale = 1.0f;
 
@@ -81,8 +87,10 @@ private:
     static inline Quaternion savedPosition;
     static inline Quaternion savedVelocity;
 
-    
-    
+    static inline ImVec2 lastSize;
+
+    static inline Vector3 prevVelocity = {0};
+    static inline double time;
 };
 
 

@@ -12,7 +12,7 @@
 #include <SWA.inl>
 #include <gpu/imgui/imgui_snapshot.h>
 
-Speedometer speedometer(ImVec2(350.0f, 250.0f), 2.0f, 240, 200.0f);
+Speedometer speedometer(ImVec2(350.0f, 250.0f), 4.0f, 240, 200.0f);
 PPCContext savedRetryCtx;
 uint8_t *savedRetryBase{};
 bool getDayTimeRotation = false;
@@ -63,27 +63,27 @@ void TASWindow::Update()
     //ImGui::SetNextWindowSize(ImVec2(260, 250), ImGuiCond_FirstUseEver);
     ImGui::Begin("Practice Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
 
-    
-    ImGui::Checkbox("Enable Speedometer", &speedometer.isEnabled);
-    ImGui::Checkbox("Disable Checkpoints", &isCheckpointDisable);
-    ImGui::SetItemTooltip("Recommended for quick restart to work properly");
-    ImGui::Text("");
-    
     if (ImGui::CollapsingHeader("Data Display")){
-        ImGui::Checkbox("Freely Move Data View", &freeWindowDataView);
         ImGui::SliderFloat("Scale", &scale, 0.0f, 3.0f);   
         ImGui::Checkbox("Show Position", &showPos);
         ImGui::Checkbox("Show Velocity", &showVelo);
         ImGui::Checkbox("Show Rotation", &showRot);
+        ImGui::Checkbox("Show Acceleration", &showAccel);
+        ImGui::SetItemTooltip("This is an approximation");
     }
     if (ImGui::CollapsingHeader("Speedometer Config")){
         ImGui::Checkbox("Freely Move Speedometer", &speedometer.freeWindowMode);
-        ImGui::SliderFloat("Scale", &speedometer.scale, 0.0f, 3.0f);        
+        ImGui::SliderFloat("Scale", &speedometer.scale, 0.0f, 1.0f);        
     }
     if (ImGui::CollapsingHeader("Misc")){
         ImGui::Checkbox("Show Context Pointers", &showPointers);
         ImGui::SetItemTooltip("This is useful if you want to use Cheat Engine to find some values");
     }
+
+    ImGui::Text("");
+    ImGui::Checkbox("Enable Speedometer", &speedometer.isEnabled);
+    ImGui::Checkbox("Disable Checkpoints", &isCheckpointDisable);
+    ImGui::SetItemTooltip("Recommended for quick restart to work properly");
 
     uint32_t playerSpeedContext = *(be<uint32_t>*)g_memory.Translate(0x83362F98);
 
@@ -153,58 +153,44 @@ void TASWindow::ShowValues(uintptr_t ptr){
         velocity = (Quaternion*)(ptr + 528 + 0x100000000);
     }
 
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 50.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 25.0f));
     ImGuiWindowFlags flags;
-    if (freeWindowDataView){
-        flags = ImGuiWindowFlags_AlwaysAutoResize;
-    }
-    else {
-        flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar;
-    }
+    flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar;
 
     ImGui::Begin("Data Viewer", NULL, flags);
+    ImGuiIO& io = ImGui::GetIO();
 
-    ImVec2 spacing = ImGui::GetStyle().ItemSpacing;
-    
-    float scaleGap = 1.0f * scale;
-
-    
-
-    spacing.x = scaleGap + 5;
-
-    ImVec2 sizeText = ImGui::CalcTextSize("Position:   ");
-    ImVec2 sizeNum = ImGui::CalcTextSize("88888");
-    float totalSize = sizeText.x + sizeNum.x * 3;
-    ImGui::Dummy(ImVec2(totalSize, 0.0f));
-    //ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, spacing);
-    
     if (showPos) ImGui::Text("Position: %5.3g %0.3g %0.3g", (double)position->x, (double)position->y, (double)position->z);
     if (showRot) ImGui::Text("Rotation: %5.3g %0.3g %0.3g", (double)rotation->x, (double)rotation->y, (double)rotation->z);
-    
+     
+    Vector3 currentVelocity = Vector3((double)velocity->x, (double)velocity->y, (double)velocity->z);
     if (showVelo) {
-        ImGui::Text("Velocity: ");
-        for (int i = 0; i < 3; i++){
-            ImGui::SameLine();
-            double currentNum = deadzone((double)*((be<float>*)velocity + i));
-            ImGui::Text("%5.2g", currentNum);
-        }
+        ImGui::Text("Velocity: %5.3g %5.3g %5.3g", deadzone(currentVelocity.x), deadzone(currentVelocity.y), deadzone(currentVelocity.z));
     }
 
     if (showSpeed || speedometer.isEnabled == true) {
-        double speed = deadzone((double)sqrt(pow(velocity->x, 2)+pow(velocity->y, 2) + pow(velocity->z, 2)));
-        ImGui::Text("Speed: %0.3g", speed);
+        double speed = deadzone(sqrt(pow(currentVelocity.x, 2)+pow(currentVelocity.y, 2) + pow(currentVelocity.z, 2)));
+        ImGui::Text("Speed: %5.3g", speed);
         if (speedometer.isEnabled == true) {
-            ImGuiIO& io = ImGui::GetIO();
             speedometer.Update(speed, io.DeltaTime);
         }
     }
+
     if (showHorizontalSpeed) {
-        double horizontalSpeed = deadzone((double)sqrt(pow(velocity->x, 2) + pow(velocity->z, 2)));
-        ImGui::Text("H Speed: %0.4g", horizontalSpeed);
+        double horizontalSpeed = deadzone(sqrt(pow(currentVelocity.x, 2) + pow(currentVelocity.z, 2)));
+        ImGui::Text("H Speed: %.3g", horizontalSpeed);
+    }
+
+    if (showAccel) {
+        double xAccel = (currentVelocity.x - prevVelocity.x) / io.DeltaTime;
+        double yAccel = (currentVelocity.y - prevVelocity.y) / io.DeltaTime;
+        double zAccel = (currentVelocity.z - prevVelocity.z) / io.DeltaTime;
+        ImGui::Text("Accel Vector: %.3g %.3g %.3g", deadzone(xAccel), deadzone(yAccel), deadzone(zAccel));
+        ImGui::Text("Accel Scalar: %.3g", deadzone(sqrt(pow(xAccel, 2)+pow(yAccel, 2) + pow(zAccel, 2))));
+        prevVelocity = currentVelocity;
     }
 
     ImGui::End();
-    ImGui::PopStyleColor();
 }
 
 void TASWindow::SetWerehogPointer(uintptr_t ptr){
@@ -230,10 +216,6 @@ void TASWindow::Shutdown()
     ImGui::DestroyContext(s_imguiContext);
     SDL_DestroyWindow(s_window);
 }
-
-
-
-
 
 
 /* not working
