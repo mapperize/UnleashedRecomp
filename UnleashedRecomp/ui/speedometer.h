@@ -9,6 +9,7 @@
 #define BLUE IM_COL32(48, 97, 227, 255)
 #define RED IM_COL32(218,37,40, 255)
 #define GREEN IM_COL32(49, 153, 56, 255)
+#define LIGHT_GRAY IM_COL32(0,0,0,80)
 
 #define ADD_COORDINATES(vector) ImVec2((vector).x + windowLoc.x, (vector).y + windowLoc.y)
 #define DISTANCE_CALC(scale) ImVec2(rad * (scale) * cos(velocityShifted), (-1) * rad * (scale) * sin(velocityShifted));
@@ -48,7 +49,7 @@ void drawSpeedometer(ImVec2 loc, float rad, float thickness, float velocity, flo
         ImVec2 lineEnd = DISTANCE_CALC(1 / 1.2);
         ImVec2 coordinateFrom = ADD_COORDINATES(lineStart);
         ImVec2 coordinateTo = ADD_COORDINATES(lineEnd);
-        drawList->AddLine(coordinateFrom, coordinateTo, WHITE, 0.35f);
+        drawList->AddLine(coordinateFrom, coordinateTo, WHITE, thickness/8);
         drawList->PathStroke(WHITE, false, 1.0f);
 
         ImVec2 textAt = DISTANCE_CALC(1 / 1.35);
@@ -66,7 +67,6 @@ void drawSpeedometer(ImVec2 loc, float rad, float thickness, float velocity, flo
     // drawList->AddLine(pos, ImVec2(pos.x + 20, pos.y + 20), IM_COL32(255,255,255,255), 5.0f);
     // Draw arc goes clockwise
     // Outer Ring
-    
     drawList->PathArcTo(windowLoc, rad, 63 * IM_PI / 96, 28 * IM_PI / 12, 0);
     drawList->PathStroke(BLUE, false, 3.0f);
     drawList->PathArcTo(windowLoc, rad, IM_PI / 4, 33 * IM_PI / 96, 0);
@@ -75,18 +75,19 @@ void drawSpeedometer(ImVec2 loc, float rad, float thickness, float velocity, flo
     // Inner Ring
     drawList->PathArcTo(windowLoc, rad / 3, 0, IM_PI * 2, 0);
     drawList->PathStroke(WHITE, false, 2.0f);
-
     
     
     return;
 }
 
 void drawLine(ImVec2 loc, float rad, float thickness, float velocity, float maxVelocity, double scale){
+    
     // Speedometer meter line, first we scale the arc length to the max velocity, then we get x,y
     ImDrawList *drawList = ImGui::GetWindowDrawList();
     ImVec2 pos = ImGui::GetCursorScreenPos();
     ImVec2 windowLoc = ImVec2(pos.x+loc.x, pos.y+loc.y);
 
+    drawList->AddCircleFilled(windowLoc, rad*scale, LIGHT_GRAY);
     float subtractBy;
     if (velocity >= maxVelocity){
         subtractBy = zeroPoint - (5 * IM_PI / 3);
@@ -107,6 +108,8 @@ class Speedometer {
     public:
         bool isEnabled = true;
         bool freeWindowMode;
+        bool firstTimeSpeedometer = true;
+        ImVec2 freePos;
         ImVec2 location;
         float scale = 1.0f;
         void Update(float velocity, double dt){
@@ -115,16 +118,24 @@ class Speedometer {
             
             ImGuiWindowFlags flags;
             flags = ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar;
+
             if (!freeWindowMode){
                 ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 575, io.DisplaySize.y - 450));
             }
+
             ImGui::SetNextWindowSize(ImVec2(2000, 1500), ImGuiCond_Always);
             ImGui::Begin("speedometer", nullptr, flags);
-            
+            if (freeWindowMode)
+                freePos = ImGui::GetWindowPos();
             drawLine(location, rad, thickness * scale, velocity, maxVelo, scale);
             drawSpeedometer(location, rad * scale, thickness, velocity, maxVelo, scale);
             
             ImGui::End();
+        }
+        void Setup(){
+            if (freeWindowMode)
+                ImGui::SetNextWindowPos(freePos);
+            firstTimeSpeedometer = false;
         }
         Speedometer(ImVec2 _location, float _thickness, float _maxVelo, int _rad) {
             location = _location;

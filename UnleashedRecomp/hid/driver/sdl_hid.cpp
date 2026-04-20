@@ -137,6 +137,9 @@ public:
         TASWindow::DPAD_UP = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_UP);
         TASWindow::DPAD_DOWN = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_DOWN);
         TASWindow::DPAD_RIGHT = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT);
+        TASWindow::DPAD_LEFT = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT);
+
+        TASWindow::BACK = SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_BACK);
 
     }
 
