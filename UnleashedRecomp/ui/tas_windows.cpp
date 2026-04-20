@@ -54,6 +54,11 @@ PPC_FUNC(sub_825F5E40)
 
 void TASWindow::Update()
 {   
+    gameDocument = SWA::CGameDocument::GetInstance();
+    if (gameDocument != NULL){
+        const char *test = gameDocument->m_pMember->m_StageName.c_str();
+    }
+
     // i highkey copy and pasted this and the velocity from some random skyth patch in the speedrun discord
     ImFont* font = ImFontAtlasSnapshot::GetFont("FOT-SeuratPro-M.otf");
     float defaultScale = font->Scale;
@@ -67,6 +72,8 @@ void TASWindow::Update()
         ImGui::SliderFloat("Scale", &scale, 0.0f, 3.0f);   
         ImGui::Checkbox("Show Position", &showPos);
         ImGui::Checkbox("Show Velocity", &showVelo);
+        ImGui::Checkbox("Show Speed", &showSpeed);
+        ImGui::Checkbox("Show Horizontal Speed", &showHorizontalSpeed);
         ImGui::Checkbox("Show Rotation", &showRot);
         ImGui::Checkbox("Show Acceleration", &showAccel);
         ImGui::SetItemTooltip("This is an approximation");
@@ -100,7 +107,6 @@ void TASWindow::Update()
     if (ImGui::Button("Restart") || DPAD_RIGHT && (playerSpeedContext != NULL || werehogPointer != NULL)) {
         GuestToHostFunction<void>(sub_82304270, savedRetryCtx.r3.u32, savedRetryCtx.r4.u32);
     }
-
     
     if (playerSpeedContext != NULL)
     {
@@ -160,17 +166,17 @@ void TASWindow::ShowValues(uintptr_t ptr){
     ImGui::Begin("Data Viewer", NULL, flags);
     ImGuiIO& io = ImGui::GetIO();
 
-    if (showPos) ImGui::Text("Position: %5.3g %0.3g %0.3g", (double)position->x, (double)position->y, (double)position->z);
-    if (showRot) ImGui::Text("Rotation: %5.3g %0.3g %0.3g", (double)rotation->x, (double)rotation->y, (double)rotation->z);
+    if (showPos) ImGui::Text("Position: %.3f %.3f %.3f", (double)position->x, (double)position->y, (double)position->z);
+    if (showRot) ImGui::Text("Rotation: %.3f %.3f %.3f", (double)rotation->x, (double)rotation->y, (double)rotation->z);
      
     Vector3 currentVelocity = Vector3((double)velocity->x, (double)velocity->y, (double)velocity->z);
     if (showVelo) {
-        ImGui::Text("Velocity: %5.3g %5.3g %5.3g", deadzone(currentVelocity.x), deadzone(currentVelocity.y), deadzone(currentVelocity.z));
+        ImGui::Text("Velocity: %.3f %.3f %.3f", deadzone(currentVelocity.x), deadzone(currentVelocity.y), deadzone(currentVelocity.z));
     }
 
     if (showSpeed || speedometer.isEnabled == true) {
         double speed = deadzone(sqrt(pow(currentVelocity.x, 2)+pow(currentVelocity.y, 2) + pow(currentVelocity.z, 2)));
-        ImGui::Text("Speed: %5.3g", speed);
+        ImGui::Text("Speed: %.3f", speed);
         if (speedometer.isEnabled == true) {
             speedometer.Update(speed, io.DeltaTime);
         }
@@ -178,15 +184,15 @@ void TASWindow::ShowValues(uintptr_t ptr){
 
     if (showHorizontalSpeed) {
         double horizontalSpeed = deadzone(sqrt(pow(currentVelocity.x, 2) + pow(currentVelocity.z, 2)));
-        ImGui::Text("H Speed: %.3g", horizontalSpeed);
+        ImGui::Text("H Speed: %.3f", horizontalSpeed);
     }
 
     if (showAccel) {
         double xAccel = (currentVelocity.x - prevVelocity.x) / io.DeltaTime;
         double yAccel = (currentVelocity.y - prevVelocity.y) / io.DeltaTime;
         double zAccel = (currentVelocity.z - prevVelocity.z) / io.DeltaTime;
-        ImGui::Text("Accel Vector: %.3g %.3g %.3g", deadzone(xAccel), deadzone(yAccel), deadzone(zAccel));
-        ImGui::Text("Accel Scalar: %.3g", deadzone(sqrt(pow(xAccel, 2)+pow(yAccel, 2) + pow(zAccel, 2))));
+        ImGui::Text("Accel Vector: %.3f %.3f %.3f", deadzone(xAccel), deadzone(yAccel), deadzone(zAccel));
+        ImGui::Text("Accel Scalar: %.3f", deadzone(sqrt(pow(xAccel, 2)+pow(yAccel, 2) + pow(zAccel, 2))));
         prevVelocity = currentVelocity;
     }
 
@@ -207,6 +213,7 @@ void TASWindow::LoadPosition()
 {
     *position = savedPosition;
     *rotation = savedRotation;
+    *velocity = Quaternion(0,0,0,0);
 }
 
 void TASWindow::Shutdown()
@@ -215,6 +222,34 @@ void TASWindow::Shutdown()
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext(s_imguiContext);
     SDL_DestroyWindow(s_window);
+}
+
+void TASWindow::LoadConfig()
+{
+
+}
+
+void TASWindow::SaveConfig()
+{
+    Config::showPos = showPos;
+    Config::showPointers = showPointers;
+    Config::showVelo = showVelo;
+    Config::showSpeed = showSpeed;
+    Config::showHorizontalSpeed = showHorizontalSpeed;
+    Config::showRot = showRot;
+    Config::showAccel = showAccel;
+}
+
+void TASWindow::SaveConfig(Quaternion position)
+{
+    Config::showPos = showPos;
+    Config::showPointers = showPointers;
+    Config::showVelo = showVelo;
+    Config::showSpeed = showSpeed;
+    Config::showHorizontalSpeed = showHorizontalSpeed;
+    Config::showRot = showRot;
+    Config::showAccel = showAccel;
+    
 }
 
 

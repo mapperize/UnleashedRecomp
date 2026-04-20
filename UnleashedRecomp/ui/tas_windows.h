@@ -1,6 +1,7 @@
 #pragma once
 #include <SDL.h>
 #include <imgui.h>
+#include <api/SWA.h>
 
 struct Vector3 {
     double x;
@@ -52,6 +53,11 @@ public:
     static void SavePosition();
     static void LoadPosition();
     static void SetWerehogPointer(uintptr_t ptr);
+
+    static void SaveConfig();
+    static void SaveConfig(Quaternion position);
+    static void LoadConfig();
+
     static inline bool DPAD_DOWN;
     static inline bool DPAD_UP;
     static inline bool DPAD_RIGHT;
@@ -62,7 +68,8 @@ public:
     
 private:
     static void ShowValues(uintptr_t ptr);
-    
+
+    static inline SWA::CGameDocument* gameDocument;
 
     static inline SDL_Window* s_window = nullptr;
     static inline SDL_GLContext s_glContext = nullptr;

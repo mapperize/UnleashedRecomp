@@ -9,6 +9,7 @@
 #define BLUE IM_COL32(48, 97, 227, 255)
 #define RED IM_COL32(218,37,40, 255)
 #define GREEN IM_COL32(49, 153, 56, 255)
+#define LIGHT_GRAY IM_COL32(0,0,0,80)
 
 #define ADD_COORDINATES(vector) ImVec2((vector).x + windowLoc.x, (vector).y + windowLoc.y)
 #define DISTANCE_CALC(scale) ImVec2(rad * (scale) * cos(velocityShifted), (-1) * rad * (scale) * sin(velocityShifted));
@@ -48,7 +49,7 @@ void drawSpeedometer(ImVec2 loc, float rad, float thickness, float velocity, flo
         ImVec2 lineEnd = DISTANCE_CALC(1 / 1.2);
         ImVec2 coordinateFrom = ADD_COORDINATES(lineStart);
         ImVec2 coordinateTo = ADD_COORDINATES(lineEnd);
-        drawList->AddLine(coordinateFrom, coordinateTo, WHITE, 0.35f);
+        drawList->AddLine(coordinateFrom, coordinateTo, WHITE, thickness/8);
         drawList->PathStroke(WHITE, false, 1.0f);
 
         ImVec2 textAt = DISTANCE_CALC(1 / 1.35);
@@ -75,18 +76,19 @@ void drawSpeedometer(ImVec2 loc, float rad, float thickness, float velocity, flo
     // Inner Ring
     drawList->PathArcTo(windowLoc, rad / 3, 0, IM_PI * 2, 0);
     drawList->PathStroke(WHITE, false, 2.0f);
-
     
     
     return;
 }
 
 void drawLine(ImVec2 loc, float rad, float thickness, float velocity, float maxVelocity, double scale){
+    
     // Speedometer meter line, first we scale the arc length to the max velocity, then we get x,y
     ImDrawList *drawList = ImGui::GetWindowDrawList();
     ImVec2 pos = ImGui::GetCursorScreenPos();
     ImVec2 windowLoc = ImVec2(pos.x+loc.x, pos.y+loc.y);
 
+    drawList->AddCircleFilled(windowLoc, rad, LIGHT_GRAY);
     float subtractBy;
     if (velocity >= maxVelocity){
         subtractBy = zeroPoint - (5 * IM_PI / 3);

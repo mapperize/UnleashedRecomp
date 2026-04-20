@@ -91,9 +91,33 @@ CONFIG_DEFINE_HIDDEN("Codes", bool, FixUnleashOutOfControlDrain, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, HomingAttackOnJump, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, HUDToggleKey, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, SaveScoreAtCheckpoints, false);
-CONFIG_DEFINE_HIDDEN("Codes", bool, SkipIntroLogos, false);
+CONFIG_DEFINE_HIDDEN("Codes", bool, SkipIntroLogos, true);
 CONFIG_DEFINE_HIDDEN("Codes", bool, UseAlternateTitle, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, UseArrowsForTimeOfDayTransition, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, UseOfficialTitleOnTitleBar, false);
+
+CONFIG_DEFINE("SpeedometerConfig", bool, isSpeedometerEnabled, true);
+CONFIG_DEFINE("SpeedometerConfig", bool, isSpeedometerFreeMoveEnabled, true);
+CONFIG_DEFINE("SpeedometerConfig", float, speedometerScale, 1.0f);
+
+CONFIG_DEFINE("DataViewConfig", bool, isDataViewEnabled, true);
+CONFIG_DEFINE("DataViewConfig", bool, isDataViewFreeMoveEnabled, true);
+CONFIG_DEFINE("DataViewConfig", float, dataViewScale, 1.0f);
+CONFIG_DEFINE("DataViewConfig", bool, showPos, true);
+CONFIG_DEFINE("DataViewConfig", bool, showPointers, false);
+CONFIG_DEFINE("DataViewConfig", bool, showVelo, true);
+CONFIG_DEFINE("DataViewConfig", bool, showSpeed, true);
+CONFIG_DEFINE("DataViewConfig", bool, showHorizontalSpeed, false);
+CONFIG_DEFINE("DataViewConfig", bool, showRot, false);
+CONFIG_DEFINE("DataViewConfig", bool, showAccel, false);
+
+// really sorry for abusing this shit
+#define VECTOR3_STORE(name, num) CONFIG_DEFINE(#name, float, xnum, 0) \
+CONFIG_DEFINE(#name, float, ynum, 0) \
+CONFIG_DEFINE(#name, float, znum, 0)  
+
+
+VECTOR3_STORE(gay, 5);
+
 
 CONFIG_DEFINE("Update", time_t, LastChecked, 0);
