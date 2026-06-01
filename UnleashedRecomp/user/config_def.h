@@ -117,7 +117,5 @@ CONFIG_DEFINE(#name, float, ynum, 0) \
 CONFIG_DEFINE(#name, float, znum, 0)  
 
 
-VECTOR3_STORE(gay, 5);
-
 
 CONFIG_DEFINE("Update", time_t, LastChecked, 0);

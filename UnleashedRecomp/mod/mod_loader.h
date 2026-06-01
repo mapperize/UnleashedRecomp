@@ -2,7 +2,7 @@
 
 struct ModLoader
 {
-    static inline bool s_isLogTypeConsole;
+    static inline bool s_isLogTypeConsole = true;
 
     static inline std::filesystem::path s_saveFilePath;
     

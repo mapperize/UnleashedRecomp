@@ -203,6 +203,7 @@ set(UNLEASHED_RECOMP_THIRDPARTY_SOURCES
     "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/imgui/imgui_draw.cpp"
     "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/imgui/imgui_tables.cpp"
     "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/imgui/imgui_widgets.cpp"
+    "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/imgui/misc/cpp/imgui_stdlib.cpp"
     "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/implot/implot.cpp"
     "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/implot/implot_demo.cpp"
     "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/implot/implot_items.cpp"

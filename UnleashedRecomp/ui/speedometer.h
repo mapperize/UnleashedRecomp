@@ -88,7 +88,7 @@ void drawLine(ImVec2 loc, float rad, float thickness, float velocity, float maxV
     ImVec2 pos = ImGui::GetCursorScreenPos();
     ImVec2 windowLoc = ImVec2(pos.x+loc.x, pos.y+loc.y);
 
-    drawList->AddCircleFilled(windowLoc, rad, LIGHT_GRAY);
+    drawList->AddCircleFilled(windowLoc, rad*scale, LIGHT_GRAY);
     float subtractBy;
     if (velocity >= maxVelocity){
         subtractBy = zeroPoint - (5 * IM_PI / 3);
