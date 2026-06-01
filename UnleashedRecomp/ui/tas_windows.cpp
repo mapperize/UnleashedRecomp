@@ -263,15 +263,16 @@ void TASWindow::Update()
         
         if (ImGui::Button("Position Manager Window"))
             showPositionWindow = !showPositionWindow;
-        
+        /*
         if (ImGui::Button("Restart") || BACK && (playerSpeedContext != NULL || werehogPointer != NULL)) {
-            //GuestToHostFunction<void>(sub_823176A0, savedRetryCtx.r3.u32, 1);
+            GuestToHostFunction<void>(sub_823176A0, savedRetryCtx.r3.u32, 1);
             //GuestToHostFunction<void>(sub_82304270, savedRetryCtx2.r3.u32, savedRetryCtx2.r4.u32);
             //__imp__sub_823176A0(savedRetryCtx2, savedRetryBase2);
             //__imp__sub_82342D20(savedRetryCtx, savedRetryBase);
             //__imp__sub_82304980(savedRetryCtx, savedRetryBase);
             printf("\n%d", is2DMode);
         }
+            */
         ImGui::SameLine();
         if (ImGui::Button("Hide Menu")) {
             showWindow = false;
@@ -409,7 +410,7 @@ void TASWindow::PositionManager()
     }
     
     if(showPositionWindow){
-        ImGui::Begin("Position Manager");
+        ImGui::Begin("Position Manager", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         if (newStageName == "") ImGui::Text("Not Currently in a Level");
         else {
             ImGui::Text("Level: %s", currentLevel->name.c_str());
@@ -562,7 +563,6 @@ void TASWindow::LoadPosition()
 
 void TASWindow::Shutdown()
 {
-    SaveConfig();
     ImGui::SetCurrentContext(s_imguiContext);
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext(s_imguiContext);
@@ -584,6 +584,11 @@ void TASWindow::LoadConfig()
     showPositionWindow = Config::showPositionWindow;
 
     isCheckpointDisable = Config::isCheckpointDisable;
+
+    speedometer.isEnabled = Config::isSpeedometerEnabled;
+    speedometer.freeWindowMode = Config::isSpeedometerFreeMoveEnabled;
+    speedometer.freePos = ImVec2(Config::speedometerX, Config::speedometerY);
+    scale = Config::speedometerScale;
 }
 
 void TASWindow::SaveConfig()
@@ -599,6 +604,15 @@ void TASWindow::SaveConfig()
     Config::enableTimer = enableTimer;
 
     Config::showPositionWindow = showPositionWindow;
+
+    Config::isCheckpointDisable = isCheckpointDisable;
+
+    Config::isSpeedometerEnabled = speedometer.isEnabled;
+    Config::isSpeedometerFreeMoveEnabled = speedometer.freeWindowMode;
+    Config::speedometerX = speedometer.freePos.x;
+    Config::speedometerY = speedometer.freePos.y;
+    Config::speedometerScale = scale;
+    Config::Save();
 }
 
 

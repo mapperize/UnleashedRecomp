@@ -10,6 +10,7 @@
 #include <user/config.h>
 #include <user/paths.h>
 #include <user/registry.h>
+#include <ui/tas_windows.h>
 
 void App::Restart(std::vector<std::string> restartArgs)
 {
@@ -19,7 +20,7 @@ void App::Restart(std::vector<std::string> restartArgs)
 
 void App::Exit()
 {
-    Config::Save();
+    TASWindow::SaveConfig();
 
 #ifdef _WIN32
     timeEndPeriod(1);
