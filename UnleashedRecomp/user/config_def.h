@@ -96,12 +96,14 @@ CONFIG_DEFINE_HIDDEN("Codes", bool, UseAlternateTitle, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, UseArrowsForTimeOfDayTransition, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, UseOfficialTitleOnTitleBar, false);
 
+// all for practice tool stuff
 CONFIG_DEFINE("SpeedometerConfig", bool, isSpeedometerEnabled, true);
 CONFIG_DEFINE("SpeedometerConfig", bool, isSpeedometerFreeMoveEnabled, true);
 CONFIG_DEFINE("SpeedometerConfig", float, speedometerScale, 1.0f);
+CONFIG_DEFINE("SpeedometerConfig", float, speedometerX, 1.0f);
+CONFIG_DEFINE("SpeedometerConfig", float, speedometerY, 1.0f);
 
 CONFIG_DEFINE("DataViewConfig", bool, isDataViewEnabled, true);
-CONFIG_DEFINE("DataViewConfig", bool, isDataViewFreeMoveEnabled, true);
 CONFIG_DEFINE("DataViewConfig", float, dataViewScale, 1.0f);
 CONFIG_DEFINE("DataViewConfig", bool, showPos, true);
 CONFIG_DEFINE("DataViewConfig", bool, showPointers, false);
@@ -110,6 +112,13 @@ CONFIG_DEFINE("DataViewConfig", bool, showSpeed, true);
 CONFIG_DEFINE("DataViewConfig", bool, showHorizontalSpeed, false);
 CONFIG_DEFINE("DataViewConfig", bool, showRot, false);
 CONFIG_DEFINE("DataViewConfig", bool, showAccel, false);
+
+CONFIG_DEFINE("WereHogConfig", bool, enableTimer, true);
+
+CONFIG_DEFINE("PosManager", bool, showPositionWindow, true);
+
+CONFIG_DEFINE("MiscConfig", bool, isCheckpointDisable, false);
+
 
 // really sorry for abusing this shit
 #define VECTOR3_STORE(name, num) CONFIG_DEFINE(#name, float, xnum, 0) \

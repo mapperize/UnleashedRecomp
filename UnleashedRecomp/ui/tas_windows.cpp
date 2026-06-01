@@ -106,20 +106,6 @@ PPC_FUNC(sub_825F5E40)
     __imp__sub_825F5E40(ctx, base);
 }
 
-uint32_t swap_32(uint32_t value) {
-#if defined(__GNUC__) || defined(__clang__)
-    return __builtin_bswap32(value);
-#elif defined(_MSC_VER)
-    return _byteswap_ulong(value);
-#else
-    // Fallback if compiler is unknown
-    return ((value & 0xFF000000) >> 24) |
-           ((value & 0x00FF0000) >> 8)  |
-           ((value & 0x0000FF00) << 8)  |
-           ((value & 0x000000FF) << 24);
-#endif
-}
-
 bool TASWindow::compareQuaternion(const Quaternion lhs, const Quaternion rhs)
 {
     bool _x (lhs.x == rhs.x);
@@ -127,23 +113,6 @@ bool TASWindow::compareQuaternion(const Quaternion lhs, const Quaternion rhs)
     bool _z (lhs.z == rhs.z);
     bool _w (lhs.w == rhs.w);
     return (_x & _y & _z & _w);
-}
-
-/*Quaternion swapEndian(QuaternionLE q){
-    float x = (float)ByteSwap(q.x);
-    float y = (float)ByteSwap(q.y);
-    float z = (float)ByteSwap(q.z);
-    float w = (float)ByteSwap(q.w);
-    return Quaternion(x,y,z,w);
-}*/
-
-static inline uint32_t swapEndian32F(float val) {
-    union {
-        float f;
-        uint32_t u;
-    } temp;
-    temp.f = val;
-    return swap_32(temp.u);
 }
 
 // le and be mania
@@ -396,6 +365,7 @@ void TASWindow::PositionManager()
 
     if(firstTimeLoad){
         ReloadJson();
+        LoadConfig();
         firstTimeLoad = false;
     }
 
@@ -403,8 +373,10 @@ void TASWindow::PositionManager()
         bool matched = false;
         const char* stageName = gameDocument->m_pMember->m_StageName.c_str();
         newStageName = stageName; // c_str into std::string
-        if (oldStageName != newStageName)
+        if (oldStageName != newStageName){
             forceReload = true;
+            speedometer.firstTimeSpeedometer = true; // yeah i know this is disorganized
+        }
         //printf("\nnewStageName: %s, currentLevel.name: %s", newStageName.c_str(), currentLevel->name.c_str());
         if (forceReload){
             printf("\nforce reloaded or new stage");
@@ -530,6 +502,10 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
     double speed = deadzone(sqrt(pow(currentVelocity.x, 2)+pow(currentVelocity.y, 2) + pow(currentVelocity.z, 2)));
 
     if (speedometer.isEnabled == true) {
+        if (speedometer.firstTimeSpeedometer){
+            speedometer.Setup();
+        }
+            
         speedometer.Update(speed, io.DeltaTime);
     }
     
@@ -586,6 +562,7 @@ void TASWindow::LoadPosition()
 
 void TASWindow::Shutdown()
 {
+    SaveConfig();
     ImGui::SetCurrentContext(s_imguiContext);
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext(s_imguiContext);
@@ -594,18 +571,34 @@ void TASWindow::Shutdown()
 
 void TASWindow::LoadConfig()
 {
+    showData = Config::isDataViewEnabled;
+    showPos = Config::showPos;
+    showVelo = Config::showVelo;
+    showSpeed = Config::showSpeed;
+    showHorizontalSpeed = Config::showHorizontalSpeed;
+    showRot = Config::showRot;
+    showAccel = Config::showAccel;
 
+    enableTimer = Config::enableTimer;
+
+    showPositionWindow = Config::showPositionWindow;
+
+    isCheckpointDisable = Config::isCheckpointDisable;
 }
 
 void TASWindow::SaveConfig()
 {
+    Config::isDataViewEnabled = showData;
     Config::showPos = showPos;
-    Config::showPointers = showPointers;
     Config::showVelo = showVelo;
     Config::showSpeed = showSpeed;
     Config::showHorizontalSpeed = showHorizontalSpeed;
     Config::showRot = showRot;
     Config::showAccel = showAccel;
+
+    Config::enableTimer = enableTimer;
+
+    Config::showPositionWindow = showPositionWindow;
 }
 
 
