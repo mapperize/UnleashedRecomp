@@ -494,9 +494,6 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
             
             
             be<float> timer = *(be<float>*)g_memory.Translate( &(pGameDocument->pMember) + 0x5C);
-            int minutes = 0;
-            int seconds = 0;
-            int milliseconds = 0;
             if (timer >= 0) {
 
                 int time = (int)(timer * 100);
