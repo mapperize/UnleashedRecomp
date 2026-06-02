@@ -457,14 +457,17 @@ void TASWindow::PositionManager()
 
 void TASWindow::ReloadJson(){
     std::ifstream file(GetPositionPath());
-    json data = json::parse(file);
-    data.get_to(levels);
-
-    printf("\nthe name: %s \n", levels[0].positions[0].posName.c_str());
-    // since this might get freed we need to set currentLevel to nullptr
-    currentLevel = NULL;
-    forceReload = true;
-    printf("\nsuccessfully reloaded json");
+    if (file) {
+        json data = json::parse(file);
+        data.get_to(levels);
+        // since this might get freed we need to set currentLevel to nullptr
+        currentLevel = NULL;
+        forceReload = true;
+        printf("\nsuccessfully reloaded json");
+    }
+    else {
+        printf("\nfile probably doesnt exist");
+    }
 }
 
 void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
