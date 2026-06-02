@@ -296,7 +296,7 @@ void TASWindow::Update()
             if (firstTime){
                 showNotification = true;
                 firstTime = false;
-            }
+            
         }
         else if (debounceNotificationFrames > 3) debounceNotificationFrames = 4;
     }
@@ -486,15 +486,24 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
     int milliseconds;
     int seconds;
     if(isWerehog){
-        // i am really sorry to whoever wanted to read this
-        be<float> *timer = (be<float>*)g_memory.Translate(ptr + 0x6a4);
-        int time = (int)(*timer * (-1) * 100);
-        int centiseconds = (time - minutes * 60 * 100);
         
-        int minutes = (time / 100) / 60;
-        int seconds = centiseconds / 100; 
-        int milliseconds = centiseconds % 100;
+        if (auto pGameDocument = SWA::CGameDocument::GetInstance()) {
+            // i am really sorry to whoever wanted to read this
 
+            //be<float>* timer = (be<float>*)g_memory.Translate(ptr + 0x6a4);
+            
+            be<float> timer = pGameDocument->pMember->m_GameTime;
+            int minutes, seconds, milliseconds = 0;
+            if (timer >= 0) {
+
+                int time = (int)(timer * 100);
+                int centiseconds = (time - minutes * 60 * 100);
+
+                minutes = (time / 100) / 60;
+                seconds = centiseconds / 100;
+                milliseconds = centiseconds % 100;
+            }
+        }
         velocity = (Quaternion*)g_memory.Translate(ptr + 0x900);  
         rotation = (Quaternion*)g_memory.Translate(transform);
     }
@@ -515,7 +524,7 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
     
     if (!showData) return;
     ImGui::Begin("Data Viewer", NULL, flags);
-    if (enableTimer && isWerehog) ImGui::Text("\nTimer: %d : %d : %d", minutes, seconds, milliseconds);  
+    if (enableTimer && isWerehog) ImGui::Text("\nTimer: %02d : %02d : %02d", minutes, seconds, milliseconds);  
     if (showPos) ImGui::Text("Position: %.3f %.3f %.3f", (double)position->x, (double)position->y, (double)position->z);
     if (showRot) ImGui::Text("Rotation: %.3f %.3f %.3f %.3f", (double)rotation->x, (double)rotation->y, (double)rotation->z, (double)rotation->w);
     if (showVelo) {
