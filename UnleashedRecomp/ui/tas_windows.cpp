@@ -261,7 +261,7 @@ void TASWindow::Update()
         if (ImGui::Button("Load Position") && (playerSpeedContext != NULL || werehogPointer != NULL))
             if(position != NULL) LoadPosition();
         
-        if (ImGui::Button("Position Manager Window"))
+        if (ImGui::Button("Position Manager"))
             showPositionWindow = !showPositionWindow;
         /*
         if (ImGui::Button("Restart") || BACK && (playerSpeedContext != NULL || werehogPointer != NULL)) {
@@ -282,6 +282,16 @@ void TASWindow::Update()
             }
         }
         ImGui::SetItemTooltip("You can show the menu again with right shift");
+        if(playerSpeedContext != NULL){
+            uintptr_t ringPtr = *(be<uint32_t>*)(g_memory.Translate(0x83362F98));
+            uintptr_t ringCtx = (uintptr_t)g_memory.Translate(ringPtr);
+            be<uint32_t> *rings = (be<uint32_t>*)(ringCtx + 0x538);
+            uint32_t ringsLE = (uint32_t)*rings;
+            int step = 1;
+            int step_fast = 5;
+            ImGui::InputScalar("Rings: ", ImGuiDataType_U32, &ringsLE, &step, &step_fast, "%u");
+            *rings = (be<uint32_t>)ringsLE;
+        }
         ImGui::End();
     }
 
@@ -311,6 +321,7 @@ void TASWindow::Update()
         getDayTimeRotation = true;
         ShowValues(playerSpeedContext, false);
         isInGame = true;
+        
     }
     // this is set by some hook in player patches to change the icon
     else if(werehogPointer != NULL){
@@ -489,8 +500,7 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
         if (SWA::CGameDocument *pGameDocument = SWA::CGameDocument::GetInstance()) {
             void *m_pMember = (void*)pGameDocument->m_pMember;
             timer = *(be<float>*)((uintptr_t)m_pMember + 0x5C);
-            if (timer > 0) { // some bullshit fills this up probably from malloc in the game
-                printf("\ntimer: %f", (float)timer);
+            if (timer > 0) {
                 minutes = (int)(timer / 60);
                 seconds = (int)(timer - (minutes * 60));
                 milliseconds = (int)(timer * 100 - (minutes * 60) - seconds);
