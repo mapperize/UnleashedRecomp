@@ -407,3 +407,6 @@ FodyWeavers.xsd
 # CMake Files
 **/cmake-build-debug
 **/CMakeCache.txt
+
+# Other compiler generated files
+compile_commands.json
