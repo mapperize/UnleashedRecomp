@@ -136,6 +136,7 @@ private:
     static inline Quaternion *velocity;
 
     static void ReloadJson();
+    static void SaveJson();
     static inline std::vector<Level> levels;
     static inline std::string newStageName;
     static inline std::string oldStageName;

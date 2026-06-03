@@ -454,9 +454,7 @@ void TASWindow::PositionManager(){
         }
 
         if (ImGui::Button("Save Positions to File")){
-            json data = levels;
-            std::ofstream out(GetPositionPath());
-            out << std::setw(4) << data << std::endl;
+            SaveJson();
         }
         if (ImGui::Button("Reload Positions File") || firstTimeLoad){
             ReloadJson();
@@ -464,6 +462,12 @@ void TASWindow::PositionManager(){
         ImGui::End();
     }
     return;
+}
+
+void TASWindow::SaveJson(){
+    json data = levels;
+    std::ofstream out(GetPositionPath());
+    out << std::setw(4) << data << std::endl;
 }
 
 void TASWindow::ReloadJson(){
@@ -605,6 +609,8 @@ void TASWindow::LoadConfig()
     scale = Config::speedometerScale;
 }
 
+
+// this gets called on app close
 void TASWindow::SaveConfig()
 {
     Config::isDataViewEnabled = showData;
@@ -626,6 +632,9 @@ void TASWindow::SaveConfig()
     Config::speedometerX = speedometer.freePos.x;
     Config::speedometerY = speedometer.freePos.y;
     Config::speedometerScale = scale;
+
+    SaveJson();
+
     Config::Save();
 }
 
