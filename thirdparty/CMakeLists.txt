@@ -1,5 +1,8 @@
 cmake_policy(SET CMP0077 NEW)
 
+set(SDL2_INCLUDE_DIR "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/sdl2-compat/include/SDL2")
+set(SDL3_INCLUDE_DIRS "${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/SDL/include")
+
 set(MSDF_ATLAS_BUILD_STANDALONE OFF)
 set(MSDF_ATLAS_USE_SKIA OFF)
 set(MSDF_ATLAS_NO_ARTERY_FONT ON)
@@ -26,7 +29,7 @@ endif()
 add_subdirectory("${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/msdf-atlas-gen")
 add_subdirectory("${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/nativefiledialog-extended")
 add_subdirectory("${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/o1heap")
-add_subdirectory("${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/SDL")
+add_subdirectory("${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/sdl2-compat")
 add_subdirectory("${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/SDL_mixer")
 add_subdirectory("${UNLEASHED_RECOMP_THIRDPARTY_ROOT}/plume")
 

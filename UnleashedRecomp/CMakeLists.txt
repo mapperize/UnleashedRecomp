@@ -394,7 +394,7 @@ target_link_libraries(UnleashedRecomp PRIVATE
     nfd::nfd
     o1heap
     XenonUtils
-    SDL2::SDL2-static
+    SDL2::SDL2
     SDL2_mixer
     tomlplusplus::tomlplusplus
     UnleashedRecompLib
