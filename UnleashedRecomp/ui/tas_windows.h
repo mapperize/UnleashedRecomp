@@ -97,6 +97,7 @@ private:
     static inline SDL_GLContext s_glContext = nullptr;
     static inline ImGuiContext* s_imguiContext = nullptr;
     static inline bool s_show = true;
+    static inline bool alwaysShowCursor = true;
 
     static inline bool showData;
     static inline bool showPointers;

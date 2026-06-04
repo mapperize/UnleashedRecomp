@@ -118,6 +118,7 @@ CONFIG_DEFINE("WereHogConfig", bool, enableTimer, true);
 CONFIG_DEFINE("PosManager", bool, showPositionWindow, true);
 
 CONFIG_DEFINE("MiscConfig", bool, isCheckpointDisable, false);
+CONFIG_DEFINE("MiscConfig", bool, alwaysShowCursor, true);
 
 
 // really sorry for abusing this shit

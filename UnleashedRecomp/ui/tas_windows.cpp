@@ -27,6 +27,11 @@ void TASWindow::Update()
     // i highkey copy and pasted this font and the velocity thingy from some random skyth patch in the unleashed speedrun discord
     playerSpeedContext = *(be<uint32_t>*)g_memory.Translate(0x83362F98);
 
+    if (alwaysShowCursor) 
+        GameWindow::SetFullscreenCursorVisibility(true);
+    else 
+        GameWindow::SetFullscreenCursorVisibility(false);
+
     ImFont* font = ImFontAtlasSnapshot::GetFont("FOT-SeuratPro-M.otf");
     float defaultScale = font->Scale;
     font->Scale = ImGui::GetDefaultFont()->FontSize / font->FontSize;
@@ -58,6 +63,7 @@ void TASWindow::Update()
             ImGui::Checkbox("Disable Checkpoints", &isCheckpointDisable);
             //ImGui::Checkbox("Show Context Pointers", &showPointers);
             //ImGui::SetItemTooltip("This is useful if you want to use Cheat Engine to find some values");
+            ImGui::Checkbox("Show Mouse Cursor in Fullscreen", &alwaysShowCursor);
         }
 
         if (ImGui::Button("Save Position") && (playerSpeedContext != NULL || werehogPointer != NULL)) 
@@ -376,6 +382,7 @@ void TASWindow::LoadConfig()
     showPositionWindow = Config::showPositionWindow;
 
     isCheckpointDisable = Config::isCheckpointDisable;
+    alwaysShowCursor = Config::alwaysShowCursor;
 
     speedometer.isEnabled = Config::isSpeedometerEnabled;
     speedometer.freeWindowMode = Config::isSpeedometerFreeMoveEnabled;
@@ -401,6 +408,7 @@ void TASWindow::SaveConfig()
     Config::showPositionWindow = showPositionWindow;
 
     Config::isCheckpointDisable = isCheckpointDisable;
+    Config::alwaysShowCursor = alwaysShowCursor;
 
     Config::isSpeedometerEnabled = speedometer.isEnabled;
     Config::isSpeedometerFreeMoveEnabled = speedometer.freeWindowMode;
