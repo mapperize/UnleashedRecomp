@@ -111,6 +111,7 @@ CONFIG_DEFINE("DataViewConfig", bool, showSpeed, true);
 CONFIG_DEFINE("DataViewConfig", bool, showHorizontalSpeed, false);
 CONFIG_DEFINE("DataViewConfig", bool, showRot, false);
 CONFIG_DEFINE("DataViewConfig", bool, showAccel, false);
+CONFIG_DEFINE("DataViewConfig", bool, showAccelScalar, false);
 
 CONFIG_DEFINE("WereHogConfig", bool, enableTimer, true);
 
