@@ -5,7 +5,6 @@
 #include "game_window.h"
 #include "speedometer.h"
 
-#include <SDL.h>
 #include <imgui.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <gpu/imgui/imgui_snapshot.h>
@@ -26,6 +25,7 @@ void TASWindow::Update()
     gameDocument = SWA::CGameDocument::GetInstance();
     // i highkey copy and pasted this font and the velocity thingy from some random skyth patch in the unleashed speedrun discord
     playerSpeedContext = *(be<uint32_t>*)g_memory.Translate(0x83362F98);
+    playerDeathContext = *(be<uint32_t>*)g_memory.Translate(0x83364724);
 
     if(firstTimeLoad){
         ReloadJson();
@@ -103,11 +103,11 @@ void TASWindow::Update()
         if (ImGui::Button("Position Manager"))
             showPositionWindow = !showPositionWindow;
         
-        /*
-        if (ImGui::Button("Restart") || BACK && (playerSpeedContext != NULL || werehogPointer != NULL)) {
-
+        if (ImGui::Button("Kill") || BACK && (playerSpeedContext != NULL || werehogPointer != NULL)){
+            if (playerSpeedContext != NULL)
+                GuestToHostFunction<void>(sub_823176A0, playerDeathContext, 1);
         }
-        */
+
         ImGui::SameLine();
         if (ImGui::Button("Hide Menu")) {
             showWindow = false;

@@ -122,12 +122,4 @@ CONFIG_DEFINE("PosManager", bool, showPositionWindow, true);
 CONFIG_DEFINE("MiscConfig", bool, isCheckpointDisable, false);
 CONFIG_DEFINE("MiscConfig", bool, alwaysShowCursor, true);
 
-
-// really sorry for abusing this shit
-#define VECTOR3_STORE(name, num) CONFIG_DEFINE(#name, float, xnum, 0) \
-CONFIG_DEFINE(#name, float, ynum, 0) \
-CONFIG_DEFINE(#name, float, znum, 0)  
-
-
-
 CONFIG_DEFINE("Update", time_t, LastChecked, 0);

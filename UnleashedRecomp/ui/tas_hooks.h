@@ -1,6 +1,8 @@
 #include "tas_windows.h"
 #include <SWA.inl>
 
+PPCContext savedRetryCtx;
+
 #define PRINT_HOOK(func) \
 PPC_FUNC_IMPL(__imp__##func);\
 PPC_FUNC(func)\
@@ -44,6 +46,12 @@ void GetRotate(PPCRegister& r3){
 }
 
 // sub_823176A0 insta kills sonic to void
+PPC_FUNC_IMPL(__imp__sub_823176A0);
+PPC_FUNC(sub_823176A0){
+    printf("\nyou dead\n");
+    savedRetryCtx = ctx;
+    __imp__sub_823176A0(ctx, base);
+}
 
 // checkpoints activate this to change the restart to the checkpoint 
 PPC_FUNC_IMPL(__imp__sub_82305DF8);

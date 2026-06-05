@@ -48,8 +48,6 @@ struct Level {
     Position positions[10];
 };
 
-
-
 class TASWindow {
 public:
     static void Update();
@@ -76,6 +74,8 @@ public:
     static inline Quaternion *position;
     static inline Quaternion *rotation;
     static inline Quaternion *velocity;
+
+    static inline bool test;
     
 private:
     static QuaternionLE swapEndian(Quaternion q){
@@ -99,6 +99,7 @@ private:
     static std::filesystem::path GetPracticeConfigPath();
 
     static inline uint32_t playerSpeedContext;
+    static inline uint32_t playerDeathContext;
     static inline SWA::CGameDocument* gameDocument;
 
     static inline SDL_Window* s_window = nullptr;
@@ -144,6 +145,7 @@ private:
 
     static inline bool firstTime = true;
     static inline bool showNotification = false;
+    static inline bool showSaveNotification = false;
     static inline const float notificationActiveTime = 5.0f;
     static inline float notificationTimer;
     static inline int debounceMenuToggle;
