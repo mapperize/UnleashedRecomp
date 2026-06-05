@@ -48,6 +48,8 @@ struct Level {
     Position positions[10];
 };
 
+
+
 class TASWindow {
 public:
     static void Update();
@@ -81,6 +83,12 @@ private:
     }
     static Quaternion swapEndian(QuaternionLE q){
         return Quaternion((be<float>)q.x,(be<float>)q.y,(be<float>)q.z,(be<float>)q.w);
+    }
+    // quick dereference helper
+    static be<uint32_t> *getPointer(uint32_t ptr, int offset){
+        uintptr_t dereferencedPtr = *(be<uint32_t>*)(g_memory.Translate(ptr));
+        uintptr_t ctxPtr = (uintptr_t)g_memory.Translate(dereferencedPtr);
+        return (be<uint32_t>*)(ctxPtr + offset);
     }
 
     static void ShowValues(uintptr_t ptr, bool isWerehog);
@@ -117,6 +125,7 @@ private:
 
     static void ReloadJson();
     static void SaveJson();
+    static inline Level *currentLevel;
     static inline std::vector<Level> levels;
     static inline std::string newStageName;
     static inline std::string oldStageName;
@@ -146,5 +155,5 @@ private:
     static inline int debounceLeftIndex;
     static inline int debounceRightIndex;
 
-    static inline Level *currentLevel;
+    static inline bool infiniteRingEnergy = false;
 };

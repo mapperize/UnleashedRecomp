@@ -115,6 +115,8 @@ CONFIG_DEFINE("DataViewConfig", bool, showAccelScalar, false);
 
 CONFIG_DEFINE("WereHogConfig", bool, enableTimer, true);
 
+CONFIG_DEFINE("DaytimeConfig", bool, infiniteRingEnergy, false);
+
 CONFIG_DEFINE("PosManager", bool, showPositionWindow, true);
 
 CONFIG_DEFINE("MiscConfig", bool, isCheckpointDisable, false);

@@ -27,6 +27,12 @@ void TASWindow::Update()
     // i highkey copy and pasted this font and the velocity thingy from some random skyth patch in the unleashed speedrun discord
     playerSpeedContext = *(be<uint32_t>*)g_memory.Translate(0x83362F98);
 
+    if(firstTimeLoad){
+        ReloadJson();
+        LoadConfig();
+        firstTimeLoad = false;
+    }
+    
     if (alwaysShowCursor) 
         GameWindow::SetFullscreenCursorVisibility(true);
     else 
@@ -57,6 +63,27 @@ void TASWindow::Update()
         }
         if (ImGui::CollapsingHeader("Werehog")){
             ImGui::Checkbox("Enable Timer", &enableTimer);
+        }
+
+        if (ImGui::CollapsingHeader("Daytime")){
+            if(playerSpeedContext != NULL){
+                auto rings = getPointer(0x83362F98, 0x538);
+                auto ringEnergy = (be<float>*)getPointer(0x83362F98, 0x53C);
+                uint32_t ringsLE = (uint32_t)*rings;
+                float ringEnergyLE = (float)*ringEnergy;
+
+                int step = 1;
+                int step_fast = 10;
+                ImGui::InputScalar("Rings", ImGuiDataType_U32, &ringsLE, &step, &step_fast, "%u");
+                ImGui::SliderFloat("Ring Energy", &ringEnergyLE, 0.0f, 100.0f, "%.2f");
+
+                *rings = (be<uint32_t>)ringsLE;
+                if (infiniteRingEnergy)
+                    *ringEnergy = 100.0f;
+                else
+                    *ringEnergy = (be<float>)ringEnergyLE;
+            }
+            ImGui::Checkbox("Infinite Boost", &infiniteRingEnergy);
         }
     
         if (ImGui::CollapsingHeader("Misc")){
@@ -90,16 +117,7 @@ void TASWindow::Update()
             }
         }
         ImGui::SetItemTooltip("You can show the menu again with right shift");
-        if(playerSpeedContext != NULL){
-            uintptr_t ringPtr = *(be<uint32_t>*)(g_memory.Translate(0x83362F98));
-            uintptr_t ringCtx = (uintptr_t)g_memory.Translate(ringPtr);
-            be<uint32_t> *rings = (be<uint32_t>*)(ringCtx + 0x538);
-            uint32_t ringsLE = (uint32_t)*rings;
-            int step = 1;
-            int step_fast = 10;
-            ImGui::InputScalar("Rings: ", ImGuiDataType_U32, &ringsLE, &step, &step_fast, "%u");
-            *rings = (be<uint32_t>)ringsLE;
-        }
+        
         ImGui::End();
     }
 
@@ -180,12 +198,6 @@ void TASWindow::PositionManager(){
         else if (debounceRightIndex > 3) debounceRightIndex = 4;
     } else debounceRightIndex = 0;
 
-    if(firstTimeLoad){
-        ReloadJson();
-        LoadConfig();
-        firstTimeLoad = false;
-    }
-
     if (gameDocument != NULL){
         bool matched = false;
         const char* stageName = gameDocument->m_pMember->m_StageName.c_str();
@@ -196,7 +208,6 @@ void TASWindow::PositionManager(){
         }
         if (forceReload){
             forceReload = false;
-
             for (Level& t: levels){ 
                 if(t.name == newStageName) {
                     currentLevel = &t;
@@ -213,7 +224,6 @@ void TASWindow::PositionManager(){
                 currentLevel = &levels.back();
             }
         }
-
         // update the vector with currentLevel before doing anything
         Position *currentPosition = currentLevel->positions + positionIndex;
         savedPosition = (Quaternion*)&currentPosition->pos;
@@ -228,7 +238,6 @@ void TASWindow::PositionManager(){
             ImGui::Text("Level: %s", currentLevel->name.c_str());
             ImGui::Text("Quick Load Index: %d", positionIndex);
             ImGui::Text("Quick Load Position Editor:");
-
             // i can't make InputFloat3 cast properly with be<float> so the overloaded swapEndian is a nasty workaround
             QuaternionLE currentSavePos = swapEndian(*savedPosition);
             QuaternionLE lastSavePos = currentSavePos;
@@ -379,6 +388,8 @@ void TASWindow::LoadConfig()
 
     enableTimer = Config::enableTimer;
 
+    infiniteRingEnergy = Config::infiniteRingEnergy;
+
     showPositionWindow = Config::showPositionWindow;
 
     isCheckpointDisable = Config::isCheckpointDisable;
@@ -404,6 +415,8 @@ void TASWindow::SaveConfig()
     Config::showAccelScalar = showAccelScalar;
 
     Config::enableTimer = enableTimer;
+
+    Config::infiniteRingEnergy = infiniteRingEnergy;
 
     Config::showPositionWindow = showPositionWindow;
 
