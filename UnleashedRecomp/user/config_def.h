@@ -105,6 +105,7 @@ CONFIG_DEFINE("SpeedometerConfig", float, speedometerY, 1.0f);
 
 CONFIG_DEFINE("DataViewConfig", bool, isDataViewEnabled, true);
 CONFIG_DEFINE("DataViewConfig", float, dataViewScale, 1.0f);
+CONFIG_DEFINE("DataViewConfig", int, waitFrames, 5);
 CONFIG_DEFINE("DataViewConfig", bool, showPos, true);
 CONFIG_DEFINE("DataViewConfig", bool, showVelo, true);
 CONFIG_DEFINE("DataViewConfig", bool, showSpeed, true);

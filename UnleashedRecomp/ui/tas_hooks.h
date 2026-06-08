@@ -70,7 +70,6 @@ PPC_FUNC(sub_82304270){
     __imp__sub_82304270(ctx, base);
 }*/
 
-
 // checkpoints activate this to change the restart to the checkpoint 
 PPC_FUNC_IMPL(__imp__sub_82305DF8);
 PPC_FUNC(sub_82305DF8){
@@ -78,18 +77,18 @@ PPC_FUNC(sub_82305DF8){
     __imp__sub_82305DF8(ctx, base);
 }
 
-
 // check if player is in 2d
 PPC_FUNC_IMPL(__imp__sub_823538E0);
 PPC_FUNC(sub_823538E0){
     __imp__sub_823538E0(ctx, base);
-    TASWindow::is2DMode = ctx.r3.u32;
+    TASWindow::is2DHook = ctx.r3.u32;
 }
 
 // changes mode to 2d
 PPC_FUNC_IMPL(__imp__sub_82B5F568);
 PPC_FUNC(sub_82B5F568)
 {
+    printf("\nr3: %d, r4: %d, r5: %d, r6: %d, r7: %d, r8: %d\n", ctx.r3.u32, ctx.r4.u32, ctx.r5.u32, ctx.r6.u32, ctx.r7.u32, ctx.r8.u32);
     __imp__sub_82B5F568(ctx, base);
 }
 
@@ -97,6 +96,7 @@ PPC_FUNC(sub_82B5F568)
 PPC_FUNC_IMPL(__imp__sub_825F5E40);
 PPC_FUNC(sub_825F5E40)
 {
+    printf("\nr3: %d, r4: %d\n", ctx.r3.u32, ctx.r4.u32);
     __imp__sub_825F5E40(ctx, base);
 }
 

@@ -41,6 +41,7 @@ struct Position {
     Quaternion pos;
     Quaternion rot;
     std::string posName;
+    bool is2DMode;
 };
 
 struct Level {
@@ -66,7 +67,7 @@ public:
     static inline bool BACK;
 
     static inline bool isInGame;
-    static inline bool is2DMode = false;
+    static inline bool is2DHook = false;
     static inline bool isCheckpointDisable = true;
 
     static inline bool getDayTimeRotation = false;
@@ -74,8 +75,6 @@ public:
     static inline Quaternion *position;
     static inline Quaternion *rotation;
     static inline Quaternion *velocity;
-
-    static inline bool test;
     
 private:
     static QuaternionLE swapEndian(Quaternion q){
@@ -94,6 +93,10 @@ private:
     static void ShowValues(uintptr_t ptr, bool isWerehog);
     static void Notification(const char* text);
     static void PositionManager();
+    static void RestartGame();
+    static void WerehogTimer();
+
+    static bool NullCheck();
 
     static std::filesystem::path GetPositionPath();
     static std::filesystem::path GetPracticeConfigPath();
@@ -118,6 +121,13 @@ private:
     static inline bool showAccel = false;
     static inline bool showAccelScalar = false;
 
+    static inline Vector3 currentDisplayVelocity;
+    static inline double displaySpeed;
+    static inline double horizontalSpeed;
+    static inline double xAccel;
+    static inline double yAccel;
+    static inline double zAccel;
+
     // speedometer
     static inline float scale = 1.0f;
 
@@ -137,6 +147,7 @@ private:
     static inline float positionEdit[3];
     static inline Quaternion *savedRotation;
     static inline Quaternion *savedPosition;
+    static inline bool *is2DCurrent;
 
     static inline ImVec2 lastSize;
 
@@ -156,6 +167,10 @@ private:
     static inline int debounceDownIndex;
     static inline int debounceLeftIndex;
     static inline int debounceRightIndex;
+    static inline int debounceBackIndex;
+
+    static inline int waitFrames;
+    static inline int frameIndex;
 
     static inline bool infiniteRingEnergy = false;
 };

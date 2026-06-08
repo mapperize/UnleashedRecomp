@@ -49,6 +49,8 @@ void TASWindow::Update()
         if (ImGui::CollapsingHeader("Data Display")){
             ImGui::Checkbox("Enable Data Display", &showData);
             ImGui::SliderFloat("Scale", &scale, 0.0f, 3.0f);   
+            ImGui::SliderInt("Delay", &waitFrames, 0, 60);
+            ImGui::SetItemTooltip("Amount of frames. Affects acceleration, velocity, and speed.");
             ImGui::Checkbox("Show Position", &showPos);
             ImGui::Checkbox("Show Velocity", &showVelo);
             ImGui::Checkbox("Show Speed", &showSpeed);
@@ -65,6 +67,7 @@ void TASWindow::Update()
         }
         if (ImGui::CollapsingHeader("Werehog")){
             ImGui::Checkbox("Enable Timer", &enableTimer);
+            ImGui::SetItemTooltip("Timer will show up in data display (for now)");
         }
 
         if (ImGui::CollapsingHeader("Daytime")){
@@ -110,13 +113,16 @@ void TASWindow::Update()
         }
         ImGui::SetItemTooltip("You can show the menu again with right shift");
         
-        if (ImGui::Button("Kill") || BACK && (playerSpeedContext != NULL || werehogPointer != NULL)){
-            if (playerSpeedContext != NULL)
-                GuestToHostFunction<void>(sub_823176A0, playerDeathContext, 1);
-            if (werehogPointer != NULL){
-                GuestToHostFunction<void>(sub_827B62E0, savedRetryCtx.r3.u32, savedRetryCtx.r4.u32);
+        if (ImGui::Button("Kill"))
+            RestartGame();
+
+        if (BACK && NullCheck()){
+            ++debounceBackIndex;
+            if (debounceBackIndex == 3){
+                RestartGame();
             }
-        }
+            if (debounceBackIndex > 3) debounceBackIndex = 4;
+        } else debounceBackIndex = 0;
 
         ImGui::End();
     }
@@ -164,41 +170,44 @@ void TASWindow::Update()
 }
 
 void TASWindow::PositionManager(){
+    bool playerActive = NullCheck();
     // wrapping this in a macro is weird so debouncing will stay like this for now
-    if (DPAD_DOWN && (playerSpeedContext != NULL || werehogPointer != NULL)){
-        ++debounceDownIndex;
-        if (debounceDownIndex== 3){
-            SavePosition();
-        }
-        if (debounceDownIndex > 3) debounceDownIndex = 4;
-    } else debounceDownIndex = 0;
-        
-    if (DPAD_UP && (playerSpeedContext != NULL || werehogPointer != NULL)){
-        ++debounceUpIndex;
-        if (debounceUpIndex== 3){
-            LoadPosition();
-        }
-        if (debounceUpIndex > 3) debounceUpIndex = 4;
-    } else debounceUpIndex = 0;
+    if (playerActive){
+        if (DPAD_DOWN){
+            ++debounceDownIndex;
+            if (debounceDownIndex== 3){
+                SavePosition();
+            }
+            if (debounceDownIndex > 3) debounceDownIndex = 4;
+        } else debounceDownIndex = 0;
+            
+        if (DPAD_UP){
+            ++debounceUpIndex;
+            if (debounceUpIndex== 3){
+                LoadPosition();
+            }
+            if (debounceUpIndex > 3) debounceUpIndex = 4;
+        } else debounceUpIndex = 0;
 
-    if (DPAD_LEFT && (playerSpeedContext != NULL || werehogPointer != NULL)){
-        ++debounceLeftIndex;
-        if (debounceLeftIndex == 3) {
-            --positionIndex;
-            if (positionIndex < 0) positionIndex = 9;
-        }
-        else if (debounceRightIndex > 3) debounceLeftIndex = 4;
-    } else debounceLeftIndex = 0;
+        if (DPAD_LEFT){
+            ++debounceLeftIndex;
+            if (debounceLeftIndex == 3) {
+                --positionIndex;
+                if (positionIndex < 0) positionIndex = 9;
+            }
+            else if (debounceRightIndex > 3) debounceLeftIndex = 4;
+        } else debounceLeftIndex = 0;
 
-    if (DPAD_RIGHT && (playerSpeedContext != NULL || werehogPointer != NULL)){
-        ++debounceRightIndex;
-        if (debounceRightIndex == 3){
-            ++positionIndex;
-            if (positionIndex > 9) positionIndex = 0;
-        }
-        else if (debounceRightIndex > 3) debounceRightIndex = 4;
-    } else debounceRightIndex = 0;
-
+        if (DPAD_RIGHT){
+            ++debounceRightIndex;
+            if (debounceRightIndex == 3){
+                ++positionIndex;
+                if (positionIndex > 9) positionIndex = 0;
+            }
+            else if (debounceRightIndex > 3) debounceRightIndex = 4;
+        } else debounceRightIndex = 0;
+    }
+    
     if (gameDocument != NULL){
         bool matched = false;
         const char* stageName = gameDocument->m_pMember->m_StageName.c_str();
@@ -229,9 +238,10 @@ void TASWindow::PositionManager(){
         Position *currentPosition = currentLevel->positions + positionIndex;
         savedPosition = (Quaternion*)&currentPosition->pos;
         savedRotation = (Quaternion*)&currentPosition->rot;
+        is2DCurrent = &currentPosition->is2DMode;
         oldStageName = newStageName;
     }
-    
+
     if(showPositionWindow){
         ImGui::Begin("Position Manager", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         if (newStageName == "") ImGui::Text("Not Currently in a Level");
@@ -264,15 +274,30 @@ void TASWindow::PositionManager(){
             }
             ImGui::Text("");
         }
-        if (ImGui::Button("Save Positions to File")){
+        if (ImGui::Button("Save Positions File"))
             SaveJson();
-        }
-        if (ImGui::Button("Reload Positions File") || firstTimeLoad){
+        ImGui::SameLine();
+        if (ImGui::Button("Reload Positions File") || firstTimeLoad)
             ReloadJson();
-        }
         ImGui::End();
     }
-    return;
+}
+
+void TASWindow::WerehogTimer(){
+    be<float> timer;
+    int minutes = 0;
+    int seconds = 0;
+    int milliseconds = 0;
+    if (gameDocument) {
+        void *m_pMember = (void*)gameDocument->m_pMember;
+        timer = *(be<float>*)((uintptr_t)m_pMember + 0x5C);
+        if (timer > 0) {
+            minutes = (int)(timer / 60);
+            seconds = (int)(timer - (minutes * 60));
+            milliseconds = (int)(timer * 100 - (minutes * 60) - seconds);
+        }
+    }
+    ImGui::Text("Timer: %02d : %02d : %02d\n", minutes, seconds, milliseconds);  
 }
 
 void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
@@ -286,21 +311,7 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
     uintptr_t transform = (matrix + 0x60);
     position = (Quaternion*)g_memory.Translate(transform + 0x10);
 
-    be<float> timer;
-    int minutes = 0;
-    int seconds = 0;
-    int milliseconds = 0;
     if(isWerehog){
-        // werehog timer 
-        if (gameDocument) {
-            void *m_pMember = (void*)gameDocument->m_pMember;
-            timer = *(be<float>*)((uintptr_t)m_pMember + 0x5C);
-            if (timer > 0) {
-                minutes = (int)(timer / 60);
-                seconds = (int)(timer - (minutes * 60));
-                milliseconds = (int)(timer * 100 - (minutes * 60) - seconds);
-            }
-        }
         velocity = (Quaternion*)g_memory.Translate(ptr + 0x900);  
         rotation = (Quaternion*)g_memory.Translate(transform);
     }
@@ -308,8 +319,20 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
         velocity = (Quaternion*)g_memory.Translate(ptr + 528);
     }
 
+    // we want the speedometer to still update to the current value
     Vector3 currentVelocity = Vector3((double)velocity->x, (double)velocity->y, (double)velocity->z);
     double speed = deadzone(sqrt(pow(currentVelocity.x, 2)+pow(currentVelocity.y, 2) + pow(currentVelocity.z, 2)));
+    if (frameIndex == waitFrames){
+        currentDisplayVelocity = currentVelocity;
+        displaySpeed = speed;
+        horizontalSpeed = deadzone(sqrt(pow(currentVelocity.x, 2) + pow(currentVelocity.z, 2)));
+        xAccel = (currentVelocity.x - prevVelocity.x) / io.DeltaTime;
+        yAccel = (currentVelocity.y - prevVelocity.y) / io.DeltaTime;
+        zAccel = (currentVelocity.z - prevVelocity.z) / io.DeltaTime;
+        frameIndex = 0;
+    }
+    else    
+        ++frameIndex;
 
     if (speedometer.isEnabled == true) {
         if (speedometer.firstTimeSpeedometer){
@@ -320,23 +343,19 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
     
     if (!showData) return;
     ImGui::Begin("Data Viewer", NULL, flags);
-    if (enableTimer && isWerehog) ImGui::Text("\nTimer: %02d : %02d : %02d", minutes, seconds, milliseconds);  
+    if (enableTimer && isWerehog) WerehogTimer();
     if (showPos) ImGui::Text("Position: %.3f %.3f %.3f", (double)position->x, (double)position->y, (double)position->z);
     if (showRot) ImGui::Text("Rotation: %.3f %.3f %.3f %.3f", (double)rotation->x, (double)rotation->y, (double)rotation->z, (double)rotation->w);
     if (showVelo) {
-        ImGui::Text("Velocity: %.3f %.3f %.3f", deadzone(currentVelocity.x), deadzone(currentVelocity.y), deadzone(currentVelocity.z));
+        ImGui::Text("Velocity: %.3f %.3f %.3f", deadzone(currentDisplayVelocity.x), deadzone(currentDisplayVelocity.y), deadzone(currentDisplayVelocity.z));
     }
-    if (showSpeed) ImGui::Text("Speed: %.3f", speed);
+    if (showSpeed) ImGui::Text("Speed: %.3f", displaySpeed);
     if (showHorizontalSpeed) {
-        double horizontalSpeed = deadzone(sqrt(pow(currentVelocity.x, 2) + pow(currentVelocity.z, 2)));
         ImGui::Text("H Speed: %.3f", horizontalSpeed);
     }
     if (showAccel) {
-        double xAccel = (currentVelocity.x - prevVelocity.x) / io.DeltaTime;
-        double yAccel = (currentVelocity.y - prevVelocity.y) / io.DeltaTime;
-        double zAccel = (currentVelocity.z - prevVelocity.z) / io.DeltaTime;
         ImGui::Text("Accel Vector: %.3f %.3f %.3f", deadzone(xAccel), deadzone(yAccel), deadzone(zAccel));
-        if (showAccelScalar)ImGui::Text("Accel Scalar: %.3f", deadzone(sqrt(pow(xAccel, 2)+pow(yAccel, 2) + pow(zAccel, 2))));
+        if (showAccelScalar) ImGui::Text("Accel Scalar: %.3f", deadzone(sqrt(pow(xAccel, 2)+pow(yAccel, 2) + pow(zAccel, 2))));
         prevVelocity = currentVelocity;
     }
     if(showPointers){
@@ -344,6 +363,10 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
         ImGui::Text("Transform: %lx", (uintptr_t)g_memory.Translate(transform));
     }
     ImGui::End();
+}
+
+bool TASWindow::NullCheck(){
+    return (playerSpeedContext != NULL || werehogPointer != NULL);
 }
 
 void TASWindow::SetWerehogPointer(uintptr_t ptr){
@@ -356,6 +379,8 @@ void TASWindow::SavePosition()
         *savedPosition = *position;
     if (savedRotation != NULL)
         *savedRotation = *rotation;
+    if (is2DCurrent != NULL)
+        *is2DCurrent = is2DHook;
 }
 
 void TASWindow::LoadPosition()
@@ -366,6 +391,13 @@ void TASWindow::LoadPosition()
     if (savedRotation != NULL)
         *rotation = *savedRotation;
     *velocity = Quaternion(0,0,0,0);
+}
+
+void TASWindow::RestartGame(){
+    if (playerSpeedContext != NULL)
+        GuestToHostFunction<void>(sub_823176A0, playerDeathContext, 1);
+    if (werehogPointer != NULL)
+        GuestToHostFunction<void>(sub_827B62E0, savedRetryCtx.r3.u32, savedRetryCtx.r4.u32);
 }
 
 void TASWindow::Shutdown()
@@ -379,6 +411,7 @@ void TASWindow::Shutdown()
 void TASWindow::LoadConfig()
 {
     showData = Config::isDataViewEnabled;
+    waitFrames = Config::waitFrames;
     showPos = Config::showPos;
     showVelo = Config::showVelo;
     showSpeed = Config::showSpeed;
@@ -403,10 +436,11 @@ void TASWindow::LoadConfig()
 }
 
 
-// this gets called on app close
+// this will ges called on app close
 void TASWindow::SaveConfig()
 {
     Config::isDataViewEnabled = showData;
+    Config::waitFrames = waitFrames;
     Config::showPos = showPos;
     Config::showVelo = showVelo;
     Config::showSpeed = showSpeed;
