@@ -42,6 +42,8 @@ void TASWindow::Update()
     float defaultScale = font->Scale;
     font->Scale = ImGui::GetDefaultFont()->FontSize / font->FontSize;
     ImGui::PushFont(font);
+    auto rings = getPointer(0x83362F98, 0x538);
+    auto ringEnergy = (be<float>*)getPointer(0x83362F98, 0x53C);
     if (showWindow){
         ImGui::Begin("Practice Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         if (ImGui::CollapsingHeader("Data Display")){
@@ -67,29 +69,24 @@ void TASWindow::Update()
 
         if (ImGui::CollapsingHeader("Daytime")){
             if(playerSpeedContext != NULL){
-                auto rings = getPointer(0x83362F98, 0x538);
-                auto ringEnergy = (be<float>*)getPointer(0x83362F98, 0x53C);
+                
                 uint32_t ringsLE = (uint32_t)*rings;
                 float ringEnergyLE = (float)*ringEnergy;
-
                 int step = 1;
                 int step_fast = 10;
                 ImGui::InputScalar("Rings", ImGuiDataType_U32, &ringsLE, &step, &step_fast, "%u");
                 ImGui::SliderFloat("Ring Energy", &ringEnergyLE, 0.0f, 100.0f, "%.2f");
 
                 *rings = (be<uint32_t>)ringsLE;
-                if (infiniteRingEnergy)
-                    *ringEnergy = 100.0f;
-                else
-                    *ringEnergy = (be<float>)ringEnergyLE;
+                *ringEnergy = (be<float>)ringEnergyLE;
             }
             ImGui::Checkbox("Infinite Boost", &infiniteRingEnergy);
         }
     
         if (ImGui::CollapsingHeader("Misc")){
             ImGui::Checkbox("Disable Checkpoints", &isCheckpointDisable);
-            //ImGui::Checkbox("Show Context Pointers", &showPointers);
-            //ImGui::SetItemTooltip("This is useful if you want to use Cheat Engine to find some values");
+            ImGui::Checkbox("Show Context Pointers", &showPointers);
+            ImGui::SetItemTooltip("This is useful if you want to use Cheat Engine to find some values");
             ImGui::Checkbox("Show Mouse Cursor in Fullscreen", &alwaysShowCursor);
         }
 
@@ -103,11 +100,6 @@ void TASWindow::Update()
         if (ImGui::Button("Position Manager"))
             showPositionWindow = !showPositionWindow;
         
-        if (ImGui::Button("Kill") || BACK && (playerSpeedContext != NULL || werehogPointer != NULL)){
-            if (playerSpeedContext != NULL)
-                GuestToHostFunction<void>(sub_823176A0, playerDeathContext, 1);
-        }
-
         ImGui::SameLine();
         if (ImGui::Button("Hide Menu")) {
             showWindow = false;
@@ -118,6 +110,14 @@ void TASWindow::Update()
         }
         ImGui::SetItemTooltip("You can show the menu again with right shift");
         
+        if (ImGui::Button("Kill") || BACK && (playerSpeedContext != NULL || werehogPointer != NULL)){
+            if (playerSpeedContext != NULL)
+                GuestToHostFunction<void>(sub_823176A0, playerDeathContext, 1);
+            if (werehogPointer != NULL){
+                GuestToHostFunction<void>(sub_827B62E0, savedRetryCtx.r3.u32, savedRetryCtx.r4.u32);
+            }
+        }
+
         ImGui::End();
     }
 
@@ -145,7 +145,8 @@ void TASWindow::Update()
         getDayTimeRotation = true;
         ShowValues(playerSpeedContext, false);
         isInGame = true;
-        
+        if (infiniteRingEnergy)
+            *ringEnergy = 100.0f;
     }
     // this is set by some hook in player patches to change the icon
     else if(werehogPointer != NULL){
@@ -338,10 +339,10 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
         if (showAccelScalar)ImGui::Text("Accel Scalar: %.3f", deadzone(sqrt(pow(xAccel, 2)+pow(yAccel, 2) + pow(zAccel, 2))));
         prevVelocity = currentVelocity;
     }
-    /*if(showPointers){
+    if(showPointers){
         ImGui::Text("Player Speed Context: %lx", (uintptr_t)g_memory.Translate(ptr));
         ImGui::Text("Transform: %lx", (uintptr_t)g_memory.Translate(transform));
-    }*/
+    }
     ImGui::End();
 }
 
