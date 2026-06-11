@@ -1159,7 +1159,7 @@ name = "GetRotate"
 address = 0x8231A3DC
 registers = ["r3"]
 
-[[midasm_hook]]
-name = "TestHook"
-address = 0x823B7310
-registers = ["r11"]
+#[[midasm_hook]]
+#name = "TestHook"
+#address = 0x823B7310
+#registers = ["r11"]

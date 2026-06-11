@@ -26,6 +26,8 @@ void TASWindow::Update()
     // i highkey copy and pasted this font and the velocity thingy from some random skyth patch in the unleashed speedrun discord
     playerSpeedContext = *(be<uint32_t>*)g_memory.Translate(0x83362F98);
     playerDeathContext = *(be<uint32_t>*)g_memory.Translate(0x83364724);
+    auto rings = getPointer(0x83362F98, 0x538);
+    auto ringEnergy = (be<float>*)getPointer(0x83362F98, 0x53C);
 
     if(firstTimeLoad){
         ReloadJson();
@@ -33,17 +35,15 @@ void TASWindow::Update()
         firstTimeLoad = false;
     }
     
+    ImFont* font = ImFontAtlasSnapshot::GetFont("FOT-SeuratPro-M.otf");
+    float defaultScale = font->Scale;
+    font->Scale = ImGui::GetDefaultFont()->FontSize / font->FontSize;
+    ImGui::PushFont(font);
     if (alwaysShowCursor) 
         GameWindow::SetFullscreenCursorVisibility(true);
     else 
         GameWindow::SetFullscreenCursorVisibility(false);
 
-    ImFont* font = ImFontAtlasSnapshot::GetFont("FOT-SeuratPro-M.otf");
-    float defaultScale = font->Scale;
-    font->Scale = ImGui::GetDefaultFont()->FontSize / font->FontSize;
-    ImGui::PushFont(font);
-    auto rings = getPointer(0x83362F98, 0x538);
-    auto ringEnergy = (be<float>*)getPointer(0x83362F98, 0x53C);
     if (showWindow){
         ImGui::Begin("Practice Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         if (ImGui::CollapsingHeader("Data Display")){
@@ -91,15 +91,25 @@ void TASWindow::Update()
             ImGui::Checkbox("Show Context Pointers", &showPointers);
             ImGui::SetItemTooltip("This is useful if you want to use Cheat Engine to find some values");
             ImGui::Checkbox("Show Mouse Cursor in Fullscreen", &alwaysShowCursor);
+            ImGui::Checkbox("Allow Broken Features", &allowBrokenFeatures);
+            ImGui::SetItemTooltip("These features might crash the game or not work as intended");
+        }
+
+        if (allowBrokenFeatures){
+            if (ImGui::Button("Force 3D"))
+                GuestToHostFunction<void>(sub_825F5E40, saved3DCtx.r3.u32, saved3DCtx.r4.u32);
+            ImGui::SetItemTooltip("This only works right after switching from 2D");
+            ImGui::SameLine();
+            if (ImGui::Button("Force 2D"))
+                GuestToHostFunction<void>(sub_825F5B90, saved2DCtx.r3.u32, saved2DCtx.r4.u32);
+            ImGui::SetItemTooltip("This only works right after switching from 3D");
         }
 
         if (ImGui::Button("Save Position") && (playerSpeedContext != NULL || werehogPointer != NULL)) 
             if(position != NULL) SavePosition();
-        
         ImGui::SameLine();
         if (ImGui::Button("Load Position") && (playerSpeedContext != NULL || werehogPointer != NULL))
             if(position != NULL) LoadPosition();
-        
         if (ImGui::Button("Position Manager"))
             showPositionWindow = !showPositionWindow;
         
@@ -115,7 +125,7 @@ void TASWindow::Update()
         
         if (ImGui::Button("Kill"))
             RestartGame();
-
+        
         if (BACK && NullCheck()){
             ++debounceBackIndex;
             if (debounceBackIndex == 3){
@@ -238,7 +248,7 @@ void TASWindow::PositionManager(){
         Position *currentPosition = currentLevel->positions + positionIndex;
         savedPosition = (Quaternion*)&currentPosition->pos;
         savedRotation = (Quaternion*)&currentPosition->rot;
-        is2DCurrent = &currentPosition->is2DMode;
+        //is2DCurrent = &currentPosition->is2DMode;
         oldStageName = newStageName;
     }
 
@@ -379,8 +389,8 @@ void TASWindow::SavePosition()
         *savedPosition = *position;
     if (savedRotation != NULL)
         *savedRotation = *rotation;
-    if (is2DCurrent != NULL)
-        *is2DCurrent = is2DHook;
+    //if (is2DCurrent != NULL)
+    //    *is2DCurrent = is2DHook;
 }
 
 void TASWindow::LoadPosition()
@@ -428,6 +438,7 @@ void TASWindow::LoadConfig()
 
     isCheckpointDisable = Config::isCheckpointDisable;
     alwaysShowCursor = Config::alwaysShowCursor;
+    allowBrokenFeatures = Config::allowBrokenFeatures;
 
     speedometer.isEnabled = Config::isSpeedometerEnabled;
     speedometer.freeWindowMode = Config::isSpeedometerFreeMoveEnabled;
@@ -457,6 +468,7 @@ void TASWindow::SaveConfig()
 
     Config::isCheckpointDisable = isCheckpointDisable;
     Config::alwaysShowCursor = alwaysShowCursor;
+    Config::allowBrokenFeatures = allowBrokenFeatures;
 
     Config::isSpeedometerEnabled = speedometer.isEnabled;
     Config::isSpeedometerFreeMoveEnabled = speedometer.freeWindowMode;

@@ -122,5 +122,6 @@ CONFIG_DEFINE("PosManager", bool, showPositionWindow, true);
 
 CONFIG_DEFINE("MiscConfig", bool, isCheckpointDisable, false);
 CONFIG_DEFINE("MiscConfig", bool, alwaysShowCursor, true);
+CONFIG_DEFINE("MiscConfig", bool, allowBrokenFeatures, false);
 
 CONFIG_DEFINE("Update", time_t, LastChecked, 0);

@@ -41,12 +41,14 @@ struct Position {
     Quaternion pos;
     Quaternion rot;
     std::string posName;
-    bool is2DMode;
+    //bool is2DMode;
 };
 
 struct Level {
     std::string name;
     Position positions[10];
+    //int force2DIndex;
+    //int force3DIndex;
 };
 
 class TASWindow {
@@ -110,6 +112,7 @@ private:
     static inline ImGuiContext* s_imguiContext = nullptr;
     static inline bool s_show = true;
     static inline bool alwaysShowCursor = true;
+    static inline bool allowBrokenFeatures = false;
 
     static inline bool showData;
     static inline bool showPointers;

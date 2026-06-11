@@ -42,15 +42,13 @@ void to_json(json& j, const Position& p){
     j = json{
         {"position", p.pos}, 
         {"positionName", p.posName},
-        {"rotation", p.rot},
-        {"is2DMode", p.is2DMode}
+        {"rotation", p.rot}
     };
 }
 void from_json(const json& j, Position& p){
     j.at("position").get_to(p.pos);
     j.at("positionName").get_to(p.posName);
     j.at("rotation").get_to(p.rot);
-    j.at("is2DMode").get_to(p.is2DMode);
 }
 
 void to_json(json& j, const Level& l) {

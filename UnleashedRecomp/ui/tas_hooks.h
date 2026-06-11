@@ -4,6 +4,12 @@
 PPCContext savedRetryCtx;
 uint8_t *savedRetryBase{};
 
+PPCContext saved3DCtx;
+uint8_t *saved3DBase{};
+
+PPCContext saved2DCtx;
+uint8_t *saved2DBase{};
+
 #define PRINT_HOOK(func) \
 PPC_FUNC_IMPL(__imp__##func);\
 PPC_FUNC(func)\
@@ -49,7 +55,6 @@ void GetRotate(PPCRegister& r3){
 // sub_823176A0 insta kills day sonic to void
 PPC_FUNC_IMPL(__imp__sub_823176A0);
 PPC_FUNC(sub_823176A0){
-    printf("\nyou dead\n");
     __imp__sub_823176A0(ctx, base);
 }
 
@@ -84,22 +89,33 @@ PPC_FUNC(sub_823538E0){
     TASWindow::is2DHook = ctx.r3.u32;
 }
 
-// changes mode to 2d
-PPC_FUNC_IMPL(__imp__sub_82B5F568);
-PPC_FUNC(sub_82B5F568)
-{
-    printf("\nr3: %d, r4: %d, r5: %d, r6: %d, r7: %d, r8: %d\n", ctx.r3.u32, ctx.r4.u32, ctx.r5.u32, ctx.r6.u32, ctx.r7.u32, ctx.r8.u32);
-    __imp__sub_82B5F568(ctx, base);
-}
+// the two functions below have weird parameters 
+// the first parameter changes based on something being malloced when it's within a certain distance (i presume from culling)
+// the second parameter has an id unique to each stage
 
+// changes mode to 2d
+PPC_FUNC_IMPL(__imp__sub_825F5B90);
+PPC_FUNC(sub_825F5B90)
+{
+    //printf("\nr3: %x, r4: %d\n", ctx.r3.u32, ctx.r4.u32);
+    saved2DCtx = ctx;
+    saved2DBase = base;
+    __imp__sub_825F5B90(ctx, base);
+}
 // changes mode to 3d
 PPC_FUNC_IMPL(__imp__sub_825F5E40);
 PPC_FUNC(sub_825F5E40)
 {
-    printf("\nr3: %d, r4: %d\n", ctx.r3.u32, ctx.r4.u32);
+    //printf("\nr3: %x, r4: %d\n", ctx.r3.u32, ctx.r4.u32);
+    saved3DCtx = ctx;
+    saved3DBase = base;
     __imp__sub_825F5E40(ctx, base);
 }
+
+/*
 
 void TestHook(PPCRegister& r11){
     //printf("\n%x\n", r11.u32);
 }
+
+*/
