@@ -34,6 +34,10 @@ void TASWindow::Update()
         LoadConfig();
         firstTimeLoad = false;
     }
+
+    if (Config::DisableDPadMovement != disableDPadMovement){
+        Config::DisableDPadMovement = disableDPadMovement;
+    }
     
     ImFont* font = ImFontAtlasSnapshot::GetFont("FOT-SeuratPro-M.otf");
     float defaultScale = font->Scale;
@@ -93,6 +97,7 @@ void TASWindow::Update()
             ImGui::Checkbox("Show Mouse Cursor in Fullscreen", &alwaysShowCursor);
             ImGui::Checkbox("Allow Broken Features", &allowBrokenFeatures);
             ImGui::SetItemTooltip("These features might crash the game or not work as intended");
+            ImGui::Checkbox("Disable D-Pad Movement", &disableDPadMovement);
         }
 
         if (allowBrokenFeatures){
@@ -182,7 +187,7 @@ void TASWindow::Update()
 void TASWindow::PositionManager(){
     bool playerActive = NullCheck();
     // wrapping this in a macro is weird so debouncing will stay like this for now
-    if (playerActive){
+    if (playerActive && disableDPadMovement){
         if (DPAD_DOWN){
             ++debounceDownIndex;
             if (debounceDownIndex== 3){
@@ -430,6 +435,8 @@ void TASWindow::LoadConfig()
     showAccel = Config::showAccel;
     showAccelScalar = Config::showAccelScalar;
 
+    disableDPadMovement = Config::practiceToolsDisableDPadMovement;
+
     enableTimer = Config::enableTimer;
 
     infiniteRingEnergy = Config::infiniteRingEnergy;
@@ -459,6 +466,11 @@ void TASWindow::SaveConfig()
     Config::showRot = showRot;
     Config::showAccel = showAccel;
     Config::showAccelScalar = showAccelScalar;
+
+    // make sure dpad movement always turns back on
+    if (Config::DisableDPadMovement == true)
+        Config::DisableDPadMovement = false;
+    Config::practiceToolsDisableDPadMovement = disableDPadMovement;
 
     Config::enableTimer = enableTimer;
 

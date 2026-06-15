@@ -79,7 +79,7 @@ CONFIG_DEFINE_HIDDEN("Codes", bool, AllowCancellingUnleash, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, DisableAutoSaveWarning, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, DisableBoostFilter, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, DisableDLCIcon, false);
-CONFIG_DEFINE_HIDDEN("Codes", bool, DisableDPadMovement, false);
+CONFIG_DEFINE("Codes", bool, DisableDPadMovement, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, DisableDWMRoundedCorners, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, DisableLowResolutionFontOnCustomUI, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, EnableEventCollisionDebugView, false);
@@ -123,5 +123,6 @@ CONFIG_DEFINE("PosManager", bool, showPositionWindow, true);
 CONFIG_DEFINE("MiscConfig", bool, isCheckpointDisable, false);
 CONFIG_DEFINE("MiscConfig", bool, alwaysShowCursor, true);
 CONFIG_DEFINE("MiscConfig", bool, allowBrokenFeatures, false);
+CONFIG_DEFINE("MiscConfig", bool, practiceToolsDisableDPadMovement, true);
 
 CONFIG_DEFINE("Update", time_t, LastChecked, 0);

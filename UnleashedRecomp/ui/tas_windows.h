@@ -114,6 +114,8 @@ private:
     static inline bool alwaysShowCursor = true;
     static inline bool allowBrokenFeatures = false;
 
+    static inline bool disableDPadMovement;
+
     static inline bool showData;
     static inline bool showPointers;
     static inline bool showPos = true;
