@@ -100,6 +100,14 @@ void TASWindow::Update()
             ImGui::Checkbox("Disable D-Pad Movement", &disableDPadMovement);
         }
 
+        if (ImGui::CollapsingHeader("Debug Views")){
+            ImGui::Checkbox("Event Collision", &eventCollisionDebugView);
+            ImGui::Checkbox("GI Mip Level", &GIMipLevelDebugView);
+            ImGui::Checkbox("Object Collision", &objectCollisionDebugView);
+            ImGui::Checkbox("Stage Collision", &allowBrokenFeatures);
+            DebugUpdate();
+        }
+
         if (allowBrokenFeatures){
             if (ImGui::Button("Force 3D"))
                 GuestToHostFunction<void>(sub_825F5E40, saved3DCtx.r3.u32, saved3DCtx.r4.u32);
@@ -413,6 +421,13 @@ void TASWindow::RestartGame(){
         GuestToHostFunction<void>(sub_823176A0, playerDeathContext, 1);
     if (werehogPointer != NULL)
         GuestToHostFunction<void>(sub_827B62E0, savedRetryCtx.r3.u32, savedRetryCtx.r4.u32);
+}
+
+void TASWindow::DebugUpdate(){
+    *SWA::SGlobals::ms_IsTriggerRender = eventCollisionDebugView;
+    *SWA::SGlobals::ms_VisualizeLoadedLevel = GIMipLevelDebugView;
+    *SWA::SGlobals::ms_IsObjectCollisionRender = objectCollisionDebugView;
+    *SWA::SGlobals::ms_IsCollisionRender = stageCollisionDebugView;
 }
 
 void TASWindow::Shutdown()

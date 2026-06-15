@@ -99,6 +99,7 @@ private:
     static void WerehogTimer();
 
     static bool NullCheck();
+    static void DebugUpdate();
 
     static std::filesystem::path GetPositionPath();
     static std::filesystem::path GetPracticeConfigPath();
@@ -115,6 +116,11 @@ private:
     static inline bool allowBrokenFeatures = false;
 
     static inline bool disableDPadMovement;
+    
+    static inline bool eventCollisionDebugView;
+    static inline bool GIMipLevelDebugView;
+    static inline bool objectCollisionDebugView;
+    static inline bool stageCollisionDebugView;
 
     static inline bool showData;
     static inline bool showPointers;
