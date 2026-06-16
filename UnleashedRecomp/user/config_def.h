@@ -82,10 +82,10 @@ CONFIG_DEFINE_HIDDEN("Codes", bool, DisableDLCIcon, false);
 CONFIG_DEFINE("Codes", bool, DisableDPadMovement, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, DisableDWMRoundedCorners, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, DisableLowResolutionFontOnCustomUI, false);
-CONFIG_DEFINE_HIDDEN("Codes", bool, EnableEventCollisionDebugView, false);
-CONFIG_DEFINE_HIDDEN("Codes", bool, EnableGIMipLevelDebugView, false);
-CONFIG_DEFINE_HIDDEN("Codes", bool, EnableObjectCollisionDebugView, false);
-CONFIG_DEFINE_HIDDEN("Codes", bool, EnableStageCollisionDebugView, false);
+CONFIG_DEFINE("Codes", bool, EnableEventCollisionDebugView, false);
+CONFIG_DEFINE("Codes", bool, EnableGIMipLevelDebugView, false);
+CONFIG_DEFINE("Codes", bool, EnableObjectCollisionDebugView, false);
+CONFIG_DEFINE("Codes", bool, EnableStageCollisionDebugView, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, FixEggmanlandUsingEventGalleryTransition, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, FixUnleashOutOfControlDrain, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, HomingAttackOnJump, false);
@@ -117,6 +117,7 @@ CONFIG_DEFINE("DataViewConfig", bool, showAccelScalar, false);
 CONFIG_DEFINE("WereHogConfig", bool, enableTimer, true);
 
 CONFIG_DEFINE("DaytimeConfig", bool, infiniteRingEnergy, false);
+CONFIG_DEFINE("DaytimeConfig", bool, disableVoidKill, false);
 
 CONFIG_DEFINE("PosManager", bool, showPositionWindow, true);
 

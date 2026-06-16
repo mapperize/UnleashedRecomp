@@ -72,11 +72,14 @@ void TASWindow::Update()
         if (ImGui::CollapsingHeader("Werehog")){
             ImGui::Checkbox("Enable Timer", &enableTimer);
             ImGui::SetItemTooltip("Timer will show up in data display (for now)");
+            if(werehogPointer != NULL){
+                if (ImGui::Button("Restart Level"))
+                    RestartGame();
+            }
         }
 
         if (ImGui::CollapsingHeader("Daytime")){
             if(playerSpeedContext != NULL){
-                
                 uint32_t ringsLE = (uint32_t)*rings;
                 float ringEnergyLE = (float)*ringEnergy;
                 int step = 1;
@@ -86,18 +89,21 @@ void TASWindow::Update()
 
                 *rings = (be<uint32_t>)ringsLE;
                 *ringEnergy = (be<float>)ringEnergyLE;
+                if (ImGui::Button("Kill Sonic"))
+                    RestartGame();
             }
+            
             ImGui::Checkbox("Infinite Boost", &infiniteRingEnergy);
+            ImGui::Checkbox("Disable Void Death", &disableVoidKill);
         }
     
         if (ImGui::CollapsingHeader("Misc")){
             ImGui::Checkbox("Disable Checkpoints", &isCheckpointDisable);
-            ImGui::Checkbox("Show Context Pointers", &showPointers);
-            ImGui::SetItemTooltip("This is useful if you want to use Cheat Engine to find some values");
+            ImGui::Checkbox("Disable D-Pad Movement", &disableDPadMovement);
+            ImGui::Checkbox("Disable Lives Updating", &disableLives);
             ImGui::Checkbox("Show Mouse Cursor in Fullscreen", &alwaysShowCursor);
             ImGui::Checkbox("Allow Broken Features", &allowBrokenFeatures);
             ImGui::SetItemTooltip("These features might crash the game or not work as intended");
-            ImGui::Checkbox("Disable D-Pad Movement", &disableDPadMovement);
         }
 
         if (ImGui::CollapsingHeader("Debug Views")){
@@ -109,13 +115,19 @@ void TASWindow::Update()
         }
 
         if (allowBrokenFeatures){
-            if (ImGui::Button("Force 3D"))
-                GuestToHostFunction<void>(sub_825F5E40, saved3DCtx.r3.u32, saved3DCtx.r4.u32);
-            ImGui::SetItemTooltip("This only works right after switching from 2D");
-            ImGui::SameLine();
-            if (ImGui::Button("Force 2D"))
-                GuestToHostFunction<void>(sub_825F5B90, saved2DCtx.r3.u32, saved2DCtx.r4.u32);
-            ImGui::SetItemTooltip("This only works right after switching from 3D");
+            if (ImGui::CollapsingHeader("Broken Features")){
+                ImGui::Checkbox("Show Context Pointers", &showPointers);
+                ImGui::SetItemTooltip("This is useful if you want to use Cheat Engine to find some values");
+                if (ImGui::TreeNode("Daytime Functions")){
+                    if (ImGui::Button("Force 3D"))
+                        GuestToHostFunction<void>(sub_825F5E40, saved3DCtx.r3.u32, saved3DCtx.r4.u32);
+                    ImGui::SetItemTooltip("This only works right after switching from 2D");
+                    ImGui::SameLine();
+                    if (ImGui::Button("Force 2D"))
+                        GuestToHostFunction<void>(sub_825F5B90, saved2DCtx.r3.u32, saved2DCtx.r4.u32);
+                    ImGui::SetItemTooltip("This only works right after switching from 3D");
+                }
+            }
         }
 
         if (ImGui::Button("Save Position") && (playerSpeedContext != NULL || werehogPointer != NULL)) 
@@ -135,9 +147,6 @@ void TASWindow::Update()
             }
         }
         ImGui::SetItemTooltip("You can show the menu again with right shift");
-        
-        if (ImGui::Button("Kill"))
-            RestartGame();
         
         if (BACK && NullCheck()){
             ++debounceBackIndex;
@@ -417,8 +426,15 @@ void TASWindow::LoadPosition()
 }
 
 void TASWindow::RestartGame(){
-    if (playerSpeedContext != NULL)
-        GuestToHostFunction<void>(sub_823176A0, playerDeathContext, 1);
+    if (playerSpeedContext != NULL){
+        if (disableVoidKill){
+            disableVoidKill = true;
+            GuestToHostFunction<void>(sub_823176A0, playerDeathContext, 1);
+            disableVoidKill = false;
+        }
+        else
+            GuestToHostFunction<void>(sub_823176A0, playerDeathContext, 1);
+    }
     if (werehogPointer != NULL)
         GuestToHostFunction<void>(sub_827B62E0, savedRetryCtx.r3.u32, savedRetryCtx.r4.u32);
 }
@@ -455,6 +471,7 @@ void TASWindow::LoadConfig()
     enableTimer = Config::enableTimer;
 
     infiniteRingEnergy = Config::infiniteRingEnergy;
+    disableVoidKill = Config::disableVoidKill;
 
     showPositionWindow = Config::showPositionWindow;
 
@@ -490,6 +507,7 @@ void TASWindow::SaveConfig()
     Config::enableTimer = enableTimer;
 
     Config::infiniteRingEnergy = infiniteRingEnergy;
+    Config::disableVoidKill = disableVoidKill;
 
     Config::showPositionWindow = showPositionWindow;
 

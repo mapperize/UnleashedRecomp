@@ -71,6 +71,8 @@ public:
     static inline bool isInGame;
     static inline bool is2DHook = false;
     static inline bool isCheckpointDisable = true;
+    static inline bool disableVoidKill = false;
+    static inline bool disableLives = true;
 
     static inline bool getDayTimeRotation = false;
     

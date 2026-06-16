@@ -55,6 +55,8 @@ void GetRotate(PPCRegister& r3){
 // sub_823176A0 insta kills day sonic to void
 PPC_FUNC_IMPL(__imp__sub_823176A0);
 PPC_FUNC(sub_823176A0){
+    if (TASWindow::disableVoidKill)
+        return;
     __imp__sub_823176A0(ctx, base);
 }
 
@@ -111,6 +113,16 @@ PPC_FUNC(sub_825F5E40)
     saved3DBase = base;
     __imp__sub_825F5E40(ctx, base);
 }
+
+// updates life counter after death
+PPC_FUNC_IMPL(__imp__sub_8251A728);
+PPC_FUNC(sub_8251A728)
+{
+    if (TASWindow::disableLives)
+        return;
+    __imp__sub_825F5E40(ctx, base);
+}
+
 
 /*
 
