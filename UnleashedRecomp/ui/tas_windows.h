@@ -141,8 +141,8 @@ private:
     static inline double yAccel;
     static inline double zAccel;
 
-    // speedometer
-    static inline float scale = 1.0f;
+    // scale for data display
+    static inline float dataFontScale = 1.0f;
 
     static inline uintptr_t werehogPointer;
     static inline bool enableTimer;

@@ -41,7 +41,7 @@ void TASWindow::Update()
     
     ImFont* font = ImFontAtlasSnapshot::GetFont("FOT-SeuratPro-M.otf");
     float defaultScale = font->Scale;
-    font->Scale = ImGui::GetDefaultFont()->FontSize / font->FontSize;
+    font->Scale = (ImGui::GetDefaultFont()->FontSize / font->FontSize) * dataFontScale;
     ImGui::PushFont(font);
     if (alwaysShowCursor) 
         GameWindow::SetFullscreenCursorVisibility(true);
@@ -52,14 +52,14 @@ void TASWindow::Update()
         ImGui::Begin("Practice Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
         if (ImGui::CollapsingHeader("Data Display")){
             ImGui::Checkbox("Enable Data Display", &showData);
-            ImGui::SliderFloat("Scale", &scale, 0.0f, 3.0f);   
+            ImGui::SliderFloat("Scale", &dataFontScale, 0.0f, 3.0f);   
             ImGui::SliderInt("Delay", &waitFrames, 0, 60);
             ImGui::SetItemTooltip("Amount of frames. Affects acceleration, velocity, and speed.");
             ImGui::Checkbox("Show Position", &showPos);
+            ImGui::Checkbox("Show Rotation", &showRot);
             ImGui::Checkbox("Show Velocity", &showVelo);
             ImGui::Checkbox("Show Speed", &showSpeed);
             ImGui::Checkbox("Show Horizontal Speed", &showHorizontalSpeed);
-            ImGui::Checkbox("Show Rotation", &showRot);
             ImGui::Checkbox("Show Acceleration", &showAccel);
             ImGui::Checkbox("Show Acceleration Scalar", &showAccelScalar);
             ImGui::SetItemTooltip("This is an approximation");
@@ -457,6 +457,7 @@ void TASWindow::Shutdown()
 void TASWindow::LoadConfig()
 {
     showData = Config::isDataViewEnabled;
+    dataFontScale = Config::dataFontScale;
     waitFrames = Config::waitFrames;
     showPos = Config::showPos;
     showVelo = Config::showVelo;
@@ -482,7 +483,7 @@ void TASWindow::LoadConfig()
     speedometer.isEnabled = Config::isSpeedometerEnabled;
     speedometer.freeWindowMode = Config::isSpeedometerFreeMoveEnabled;
     speedometer.freePos = ImVec2(Config::speedometerX, Config::speedometerY);
-    scale = Config::speedometerScale;
+    speedometer.scale = Config::speedometerScale;
 }
 
 
@@ -490,6 +491,7 @@ void TASWindow::LoadConfig()
 void TASWindow::SaveConfig()
 {
     Config::isDataViewEnabled = showData;
+    Config::dataFontScale = dataFontScale;
     Config::waitFrames = waitFrames;
     Config::showPos = showPos;
     Config::showVelo = showVelo;
@@ -519,7 +521,7 @@ void TASWindow::SaveConfig()
     Config::isSpeedometerFreeMoveEnabled = speedometer.freeWindowMode;
     Config::speedometerX = speedometer.freePos.x;
     Config::speedometerY = speedometer.freePos.y;
-    Config::speedometerScale = scale;
+    Config::speedometerScale = speedometer.scale;
 
     SaveJson();
 
