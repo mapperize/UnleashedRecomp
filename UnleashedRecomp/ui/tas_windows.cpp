@@ -110,7 +110,7 @@ void TASWindow::Update()
             ImGui::Checkbox("Event Collision", &eventCollisionDebugView);
             ImGui::Checkbox("GI Mip Level", &GIMipLevelDebugView);
             ImGui::Checkbox("Object Collision", &objectCollisionDebugView);
-            ImGui::Checkbox("Stage Collision", &allowBrokenFeatures);
+            ImGui::Checkbox("Stage Collision", &stageCollisionDebugView);
             DebugUpdate();
         }
 
