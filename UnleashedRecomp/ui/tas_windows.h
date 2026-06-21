@@ -12,6 +12,11 @@ enum ACTION {
     LOAD
 };
 
+struct SpeedSamples {
+    float x[18000];
+    float y[18000];
+};
+
 struct Vector3 {
     double x;
     double y; 
@@ -111,10 +116,11 @@ private:
     }
 
     static void ShowValues(uintptr_t ptr, bool isWerehog);
+    static void ShowSpeedPlot();
     static void Notification(const char* text);
     static void PositionManager();
     static void RestartGame();
-    static void WerehogTimer();
+    static void WerehogTimer(bool isWerehog);
 
     static bool NullCheck();
     static void DebugUpdate();
@@ -157,6 +163,7 @@ private:
     static inline bool showAccelScalar = false;
 
     static inline Vector3 currentDisplayVelocity;
+    static inline double speed;
     static inline double displaySpeed;
     static inline double horizontalSpeed;
     static inline double xAccel;
@@ -212,4 +219,10 @@ private:
     static inline int frameIndex;
 
     static inline bool infiniteRingEnergy = false;
+
+    static inline be<float> timer;
+    static inline bool showPlot;
+    static inline float windowXFit = 5.0f;
+    static inline SpeedSamples speedSamples; // 5 min * 60 sec * 60 frames/sec buffer
+    static inline size_t plotIndex = 0;
 };

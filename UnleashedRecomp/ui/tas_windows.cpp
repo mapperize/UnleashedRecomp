@@ -6,6 +6,7 @@
 #include "speedometer.h"
 
 #include <imgui.h>
+#include <implot.h>
 #include <backends/imgui_impl_sdl2.h>
 #include <gpu/imgui/imgui_snapshot.h>
 #include "misc/cpp/imgui_stdlib.h"
@@ -41,7 +42,7 @@ void TASWindow::Update()
     
     ImFont* font = ImFontAtlasSnapshot::GetFont("FOT-SeuratPro-M.otf");
     float defaultScale = font->Scale;
-    font->Scale = (ImGui::GetDefaultFont()->FontSize / font->FontSize) * dataFontScale;
+    font->Scale = (ImGui::GetDefaultFont()->FontSize / font->FontSize);
     ImGui::PushFont(font);
     if (alwaysShowCursor) 
         GameWindow::SetFullscreenCursorVisibility(true);
@@ -77,10 +78,20 @@ void TASWindow::Update()
             ImGui::Checkbox("Show Acceleration Scalar", &showAccelScalar);
             ImGui::SetItemTooltip("This is an approximation");
         }
-        if (ImGui::CollapsingHeader("Speedometer")){
-            ImGui::Checkbox("Enable Speedometer", &speedometer.isEnabled);
-            ImGui::Checkbox("Freely Move Speedometer", &speedometer.freeWindowMode);
-            ImGui::SliderFloat("Scale", &speedometer.scale, 0.0f, 1.0f);        
+        if (ImGui::CollapsingHeader("Speed Display")){
+            if (ImGui::TreeNode("Speedometer")){
+                ImGui::Checkbox("Enable Speedometer", &speedometer.isEnabled);
+                ImGui::SliderFloat("Scale", &speedometer.scale, 0.0f, 1.0f);
+                ImGui::Checkbox("Freely Move Speedometer", &speedometer.freeWindowMode);
+                ImGui::TreePop();
+            }
+
+            
+            if (ImGui::TreeNode("Speed Plot")){
+                ImGui::Checkbox("Enable Speed Plot", &showPlot);
+
+                ImGui::TreePop();
+            }
         }
         
         if (ImGui::CollapsingHeader("Werehog")){
@@ -308,12 +319,12 @@ void TASWindow::PositionManager(){
             }
             ImGui::Text("");
         }
-        if (ImGui::Button("Save Position") && (playerSpeedContext != NULL || werehogPointer != NULL)) 
+        if (ImGui::Button("Save") && (playerSpeedContext != NULL || werehogPointer != NULL)) 
             if(position != NULL) SavePosition();
         ImGui::SameLine();
-        if (ImGui::Button("Load Position") && (playerSpeedContext != NULL || werehogPointer != NULL))
+        if (ImGui::Button("Load") && (playerSpeedContext != NULL || werehogPointer != NULL))
             if(position != NULL) LoadPosition();
-
+        ImGui::SameLine();
         if (ImGui::Button("Undo") && (playerSpeedContext != NULL || werehogPointer != NULL)) 
             if(position != NULL) UndoPosition();
         ImGui::SameLine();
@@ -329,8 +340,7 @@ void TASWindow::PositionManager(){
     }
 }
 
-void TASWindow::WerehogTimer(){
-    be<float> timer;
+void TASWindow::WerehogTimer(bool isWerehog){
     int minutes = 0;
     int seconds = 0;
     int milliseconds = 0;
@@ -343,7 +353,8 @@ void TASWindow::WerehogTimer(){
             milliseconds = (int)(timer * 100 - (minutes * 60) - seconds);
         }
     }
-    ImGui::Text("Timer: %02d : %02d : %02d\n", minutes, seconds, milliseconds);  
+    if (enableTimer && isWerehog)
+        ImGui::Text("Timer: %02d : %02d : %02d\n", minutes, seconds, milliseconds);  
 }
 
 void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
@@ -367,7 +378,7 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
 
     // we want the speedometer to still update to the current value
     Vector3 currentVelocity = Vector3((double)velocity->x, (double)velocity->y, (double)velocity->z);
-    double speed = deadzone(sqrt(pow(currentVelocity.x, 2)+pow(currentVelocity.y, 2) + pow(currentVelocity.z, 2)));
+    speed = deadzone(sqrt(pow(currentVelocity.x, 2)+pow(currentVelocity.y, 2) + pow(currentVelocity.z, 2)));
     if (frameIndex == waitFrames){
         currentDisplayVelocity = currentVelocity;
         displaySpeed = speed;
@@ -386,10 +397,19 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
         }
         speedometer.Update(speed, io.DeltaTime);
     }
+
+    if (showPlot) ShowSpeedPlot();
     
     if (!showData) return;
+
+    ImGui::PopFont();
+    ImFont* font = ImFontAtlasSnapshot::GetFont("FOT-SeuratPro-M.otf");
+    float originalScale = ImGui::GetDefaultFont()->FontSize / font->FontSize;
+    font->Scale = originalScale * dataFontScale;
+    ImGui::PushFont(font);
+
     ImGui::Begin("Data Viewer", NULL, flags);
-    if (enableTimer && isWerehog) WerehogTimer();
+    WerehogTimer(isWerehog); // we handle conditions in the function
     if (showPos) ImGui::Text("Position: %.3f %.3f %.3f", (double)position->x, (double)position->y, (double)position->z);
     if (showRot) ImGui::Text("Rotation: %.3f %.3f %.3f %.3f", (double)rotation->x, (double)rotation->y, (double)rotation->z, (double)rotation->w);
     if (showVelo) {
@@ -409,6 +429,104 @@ void TASWindow::ShowValues(uintptr_t ptr, bool isWerehog){
         ImGui::Text("Transform: %lx", (uintptr_t)g_memory.Translate(transform));
     }
     ImGui::End();
+
+    ImGui::PopFont();
+    font->Scale = originalScale;
+    ImGui::PushFont(font);
+}
+
+void TASWindow::ShowSpeedPlot(){
+    static bool pausePlot;
+
+    static bool areaCalc;
+    static double endMarker;
+    static double beginMarker;
+    static double area;
+
+    float xMax = (plotIndex > 0) ? speedSamples.x[plotIndex - 1] : windowXFit;
+    float xMin = ((xMax - windowXFit) > 0.0f) ? xMax - windowXFit : 0;
+
+    if (!areaCalc){
+        beginMarker = xMin + (windowXFit * 0.1);
+        endMarker = xMax - (windowXFit * 0.1);
+    }
+
+    if (plotIndex >= 18000)
+        return;
+    WerehogTimer(false); // this updates timer var
+    if (timer <= 0.0f){
+        memset(speedSamples.x, 0, sizeof(speedSamples.x));
+        memset(speedSamples.y, 0, sizeof(speedSamples.y));
+    }
+    else if (pausePlot){
+    }
+    else {
+        speedSamples.x[plotIndex] = timer;
+        speedSamples.y[plotIndex] = speed;
+        plotIndex++;
+    }
+    ImGui::Begin("Speed Plot");
+    ImGui::Checkbox("Pause Plot", &pausePlot);
+    ImGui::SliderFloat("X-Axis Window", &windowXFit, 0, 100, "%0.1f");
+    if (ImGui::Button("Calculate Area / Distance Traveled")){
+        pausePlot = true;
+        areaCalc = true;
+    }
+    //ImGui::SetTooltip("You can use this to find if you maintained the most speed");
+    if (areaCalc){
+        ImGui::Text("Setup the two end markers to align where you want to calculate");
+        if (ImGui::Button("Finish")){
+            // first we need to snap to nearest datapoints with a linear search
+            // we'll just avoid the rounding case to make it more simple (finding if the value above the searched value is actually closer)
+            size_t i = 0;
+            size_t beginIndex;
+            size_t endIndex;
+            while (i < 18000){
+                if ((double)speedSamples.x[i] > beginMarker){
+                    beginIndex = i;
+                    break;
+                }
+                i++;
+            }
+            i = plotIndex - 1;
+            while (i > 0){
+                if ((double)speedSamples.x[i] < endMarker){
+                    endIndex = i;
+                    break;
+                }
+                i--;
+            }
+            // and let's do a trapezoidal riemann sum
+            double sum = 0;
+            double dt = speedSamples.x[endIndex] - speedSamples.x[beginIndex];
+            for (size_t iter = beginIndex; iter <= endIndex; iter++){
+                double h = speedSamples.x[beginIndex + 1] - speedSamples.x[beginIndex];
+                double a = speedSamples.y[beginIndex];
+                double b = speedSamples.y[beginIndex + 1];
+                double value = (a + b) * h;
+                sum += value;
+            }
+            area = (sum / 2) * dt;
+            areaCalc = false;
+        }
+    }
+    
+    if (area != 0)
+        ImGui::Text("Total Distance is %.2f", area);
+    
+    if (ImPlot::BeginPlot("Speed Plot")){
+        ImPlot::SetupAxis(ImAxis_Y1, "Y Axis", ImPlotAxisFlags_AutoFit);
+        ImPlot::SetupAxis(ImAxis_X1, "X Axis");
+        ImPlot::SetupAxisLimits(ImAxis_X1, xMin, xMax, ImPlotCond_Always);
+
+        if(areaCalc){
+            ImPlot::DragLineX(0, &beginMarker, ImVec4(0,1,0,1), 4.0f); // green, thick
+            ImPlot::DragLineX(1, &endMarker,   ImVec4(1,0,0,1), 4.0f); // red, thick
+        }
+
+        ImPlot::PlotLine("Speed", speedSamples.x, speedSamples.y, plotIndex);
+        ImPlot::EndPlot();
+    }
 }
 
 bool TASWindow::NullCheck(){
@@ -584,6 +702,9 @@ void TASWindow::LoadConfig()
     alwaysShowCursor = Config::alwaysShowCursor;
     allowBrokenFeatures = Config::allowBrokenFeatures;
 
+    showPlot = Config::showPlot;
+    windowXFit = Config::windowXFit;
+
     speedometer.isEnabled = Config::isSpeedometerEnabled;
     speedometer.freeWindowMode = Config::isSpeedometerFreeMoveEnabled;
     speedometer.freePos = ImVec2(Config::speedometerX, Config::speedometerY);
@@ -620,6 +741,9 @@ void TASWindow::SaveConfig()
     Config::isCheckpointDisable = isCheckpointDisable;
     Config::alwaysShowCursor = alwaysShowCursor;
     Config::allowBrokenFeatures = allowBrokenFeatures;
+
+    Config::showPlot = showPlot;
+    Config::windowXFit = windowXFit;
 
     Config::isSpeedometerEnabled = speedometer.isEnabled;
     Config::isSpeedometerFreeMoveEnabled = speedometer.freeWindowMode;

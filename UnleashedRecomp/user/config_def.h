@@ -97,6 +97,9 @@ CONFIG_DEFINE_HIDDEN("Codes", bool, UseArrowsForTimeOfDayTransition, false);
 CONFIG_DEFINE_HIDDEN("Codes", bool, UseOfficialTitleOnTitleBar, false);
 
 // all for practice tool stuff
+CONFIG_DEFINE("SpeedPlotConfig", bool, showPlot, false);
+CONFIG_DEFINE("SpeedPlotConfig", float, windowXFit, 5.0f);
+
 CONFIG_DEFINE("SpeedometerConfig", bool, isSpeedometerEnabled, true);
 CONFIG_DEFINE("SpeedometerConfig", bool, isSpeedometerFreeMoveEnabled, true);
 CONFIG_DEFINE("SpeedometerConfig", float, speedometerScale, 1.0f);
