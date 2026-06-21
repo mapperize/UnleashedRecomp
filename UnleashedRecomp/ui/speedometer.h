@@ -14,6 +14,8 @@
 #define ADD_COORDINATES(vector) ImVec2((vector).x + windowLoc.x, (vector).y + windowLoc.y)
 #define DISTANCE_CALC(scale) ImVec2(rad * (scale) * cos(velocityShifted), (-1) * rad * (scale) * sin(velocityShifted));
 
+// ALL OF THIS CODE IS SHIT AND I NEED TO REFACTOR IT ALL !!!!!
+
 float zeroPoint = (4 * IM_PI / 3);
 
 void drawSpeedometer(ImVec2 loc, float rad, float thickness, float velocity, float maxVelocity, float scale){

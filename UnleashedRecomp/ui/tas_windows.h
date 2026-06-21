@@ -7,6 +7,11 @@
 
 #define deadzone(num) fabs(num) < 1e-3 ? 0.0: num
 
+enum ACTION {
+    SAVE,
+    LOAD
+};
+
 struct Vector3 {
     double x;
     double y; 
@@ -49,6 +54,17 @@ struct Level {
     Position positions[10];
     //int force2DIndex;
     //int force3DIndex;
+};
+
+struct PositionAction {
+    Position position;
+    size_t quickIndex; // this corrosponds to what is on the quick load index
+    enum ACTION type;
+};
+
+struct PositionBuffer {
+    PositionAction actions[10];
+    size_t index = 0;
 };
 
 class TASWindow {
@@ -103,6 +119,12 @@ private:
     static bool NullCheck();
     static void DebugUpdate();
 
+    static inline bool undoStatus = false;
+    static void UndoPosition();
+    static void RedoPosition();
+    static void IncrementPositionBuffer();
+    static void DecrementPositionBuffer();
+
     static std::filesystem::path GetPositionPath();
     static std::filesystem::path GetPracticeConfigPath();
 
@@ -147,6 +169,8 @@ private:
     static inline uintptr_t werehogPointer;
     static inline bool enableTimer;
 
+    static inline PositionBuffer posBuffer;
+    static inline size_t bufferBound = 10;
     static void ReloadJson();
     static void SaveJson();
     static inline Level *currentLevel;
@@ -156,11 +180,13 @@ private:
     static inline bool firstTimeLoad = true;
     static inline bool forceReload = false;
     static inline bool showPositionWindow;
-    static inline int positionIndex = 0;
-    static inline float positionEdit[3];
-    static inline Quaternion *savedRotation;
-    static inline Quaternion *savedPosition;
-    static inline bool *is2DCurrent;
+    // this is for the level, NOT the redo/undo buffer
+    // that is handled in the PositionBuffer struct
+    static inline bool maxStatus;
+    static inline size_t positionIndex = 0;
+    static inline float positionEdit[3]; // for imgui position editor
+    static inline Position *currentPosition;
+    //static inline bool *is2DCurrent;
 
     static inline ImVec2 lastSize;
 

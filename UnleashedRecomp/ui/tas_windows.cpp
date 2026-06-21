@@ -50,6 +50,19 @@ void TASWindow::Update()
 
     if (showWindow){
         ImGui::Begin("Practice Tools", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        if (ImGui::CollapsingHeader("Game Options")){
+            ImGui::Checkbox("Disable Lives Updating", &disableLives);
+            ImGui::Checkbox("Disable Checkpoints", &isCheckpointDisable);
+            ImGui::Checkbox("Disable D-Pad Movement", &disableDPadMovement);
+            if (ImGui::TreeNode("Debug Views")){
+                ImGui::Checkbox("Event Collision", &eventCollisionDebugView);
+                ImGui::Checkbox("GI Mip Level", &GIMipLevelDebugView);
+                ImGui::Checkbox("Object Collision", &objectCollisionDebugView);
+                ImGui::Checkbox("Stage Collision", &stageCollisionDebugView);
+                DebugUpdate();
+                ImGui::TreePop();
+            }
+        }
         if (ImGui::CollapsingHeader("Data Display")){
             ImGui::Checkbox("Enable Data Display", &showData);
             ImGui::SliderFloat("Scale", &dataFontScale, 0.0f, 3.0f);   
@@ -69,6 +82,7 @@ void TASWindow::Update()
             ImGui::Checkbox("Freely Move Speedometer", &speedometer.freeWindowMode);
             ImGui::SliderFloat("Scale", &speedometer.scale, 0.0f, 1.0f);        
         }
+        
         if (ImGui::CollapsingHeader("Werehog")){
             ImGui::Checkbox("Enable Timer", &enableTimer);
             ImGui::SetItemTooltip("Timer will show up in data display (for now)");
@@ -92,26 +106,15 @@ void TASWindow::Update()
                 if (ImGui::Button("Kill Sonic"))
                     RestartGame();
             }
-            
             ImGui::Checkbox("Infinite Boost", &infiniteRingEnergy);
             ImGui::Checkbox("Disable Void Death", &disableVoidKill);
         }
     
         if (ImGui::CollapsingHeader("Misc")){
-            ImGui::Checkbox("Disable Checkpoints", &isCheckpointDisable);
-            ImGui::Checkbox("Disable D-Pad Movement", &disableDPadMovement);
-            ImGui::Checkbox("Disable Lives Updating", &disableLives);
             ImGui::Checkbox("Show Mouse Cursor in Fullscreen", &alwaysShowCursor);
             ImGui::Checkbox("Allow Broken Features", &allowBrokenFeatures);
             ImGui::SetItemTooltip("These features might crash the game or not work as intended");
-        }
-
-        if (ImGui::CollapsingHeader("Debug Views")){
-            ImGui::Checkbox("Event Collision", &eventCollisionDebugView);
-            ImGui::Checkbox("GI Mip Level", &GIMipLevelDebugView);
-            ImGui::Checkbox("Object Collision", &objectCollisionDebugView);
-            ImGui::Checkbox("Stage Collision", &stageCollisionDebugView);
-            DebugUpdate();
+            
         }
 
         if (allowBrokenFeatures){
@@ -130,11 +133,6 @@ void TASWindow::Update()
             }
         }
 
-        if (ImGui::Button("Save Position") && (playerSpeedContext != NULL || werehogPointer != NULL)) 
-            if(position != NULL) SavePosition();
-        ImGui::SameLine();
-        if (ImGui::Button("Load Position") && (playerSpeedContext != NULL || werehogPointer != NULL))
-            if(position != NULL) LoadPosition();
         if (ImGui::Button("Position Manager"))
             showPositionWindow = !showPositionWindow;
         
@@ -246,7 +244,7 @@ void TASWindow::PositionManager(){
         newStageName = stageName; // c_str into std::string
         if (oldStageName != newStageName){
             forceReload = true;
-            speedometer.firstTimeSpeedometer = true; // yeah i know this is disorganized
+            speedometer.firstTimeSpeedometer = true;
         }
         if (forceReload){
             forceReload = false;
@@ -267,26 +265,30 @@ void TASWindow::PositionManager(){
             }
         }
         // update the vector with currentLevel before doing anything
-        Position *currentPosition = currentLevel->positions + positionIndex;
-        savedPosition = (Quaternion*)&currentPosition->pos;
-        savedRotation = (Quaternion*)&currentPosition->rot;
+        currentPosition = currentLevel->positions + positionIndex;
         //is2DCurrent = &currentPosition->is2DMode;
         oldStageName = newStageName;
     }
 
     if(showPositionWindow){
         ImGui::Begin("Position Manager", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        if (newStageName == "") ImGui::Text("Not Currently in a Level");
+        if (newStageName == "") {
+            ImGui::Text("Not Currently in a Level");
+            for (auto& action : posBuffer.actions) {
+                action = PositionAction{};
+            }
+            posBuffer.index = 0;
+        }
         else {
             ImGui::Text("Level: %s", currentLevel->name.c_str());
-            ImGui::Text("Quick Load Index: %d", positionIndex);
+            ImGui::Text("Quick Load Index: %zu", positionIndex);
             ImGui::Text("Quick Load Position Editor:");
             // i can't make InputFloat3 cast properly with be<float> so the overloaded swapEndian is a nasty workaround
-            QuaternionLE currentSavePos = swapEndian(*savedPosition);
+            QuaternionLE currentSavePos = swapEndian(currentPosition->pos);
             QuaternionLE lastSavePos = currentSavePos;
             ImGui::InputFloat3("", (float*)&currentSavePos, "%.2f");
             if (currentSavePos != lastSavePos){
-                *savedPosition = swapEndian(currentSavePos);
+                currentPosition->pos = swapEndian(currentSavePos);
             }
             for (int i = 0; i < 10; i++){
                 ImGui::PushID(i);
@@ -306,6 +308,18 @@ void TASWindow::PositionManager(){
             }
             ImGui::Text("");
         }
+        if (ImGui::Button("Save Position") && (playerSpeedContext != NULL || werehogPointer != NULL)) 
+            if(position != NULL) SavePosition();
+        ImGui::SameLine();
+        if (ImGui::Button("Load Position") && (playerSpeedContext != NULL || werehogPointer != NULL))
+            if(position != NULL) LoadPosition();
+
+        if (ImGui::Button("Undo") && (playerSpeedContext != NULL || werehogPointer != NULL)) 
+            if(position != NULL) UndoPosition();
+        ImGui::SameLine();
+        if (ImGui::Button("Redo") && (playerSpeedContext != NULL || werehogPointer != NULL))
+            if(position != NULL) RedoPosition();
+
         if (ImGui::Button("Save Positions File"))
             SaveJson();
         ImGui::SameLine();
@@ -405,23 +419,113 @@ void TASWindow::SetWerehogPointer(uintptr_t ptr){
     TASWindow::werehogPointer = ptr;
 }
 
+void TASWindow::IncrementPositionBuffer(){
+    if (posBuffer.index == 9){
+        posBuffer.index = 0;
+    }
+    else {
+        posBuffer.index++;
+    }
+}
+
+void TASWindow::DecrementPositionBuffer(){
+    if (posBuffer.index == 0){
+        posBuffer.index = 9;
+    }
+    else {
+        posBuffer.index--;
+    }
+}
+
+void TASWindow::UndoPosition(){
+    if (posBuffer.index == bufferBound && !maxStatus){
+        return;
+    }
+
+    if (!undoStatus)
+        bufferBound = posBuffer.index;
+    
+    DecrementPositionBuffer();
+    PositionAction current = posBuffer.actions[posBuffer.index];
+    positionIndex = current.quickIndex;
+    currentPosition = currentLevel->positions + positionIndex;
+    
+    if (current.type == SAVE){
+        currentPosition->pos = current.position.pos;
+        currentPosition->rot = current.position.rot;
+    }
+    if (current.type == LOAD){
+        *position = current.position.pos;
+        *rotation = current.position.rot;
+    }
+
+    maxStatus = false;
+    undoStatus = true;
+}
+
+void TASWindow::RedoPosition(){
+    if (!undoStatus || maxStatus)
+        return;
+
+    IncrementPositionBuffer();
+    if (posBuffer.index == bufferBound){ 
+        maxStatus = true;
+    }
+
+    PositionAction current = posBuffer.actions[posBuffer.index];
+    positionIndex = current.quickIndex;
+    currentPosition = currentLevel->positions + positionIndex;
+    
+    if (current.type == SAVE){
+        currentPosition->pos = current.position.pos;
+        currentPosition->rot = current.position.rot;
+    }
+    if (current.type == LOAD){
+        *position = current.position.pos;
+        *rotation = current.position.rot;
+    }
+}
+
 void TASWindow::SavePosition()
 {
-    if (savedPosition != NULL)
-        *savedPosition = *position;
-    if (savedRotation != NULL)
-        *savedRotation = *rotation;
+    PositionAction current;
+    bufferBound = 20;
+    undoStatus = false;
+    if (currentPosition != NULL){
+        current.position = *currentPosition;
+
+        currentPosition->pos = *position;
+        currentPosition->rot = *rotation;
+
+        current.quickIndex = positionIndex;
+        current.type = SAVE;
+        posBuffer.actions[posBuffer.index] = current;
+        IncrementPositionBuffer();
+    }
     //if (is2DCurrent != NULL)
     //    *is2DCurrent = is2DHook;
 }
 
 void TASWindow::LoadPosition()
 {
-    if (*savedPosition == Quaternion(0,0,0,0)) return;
-    if (savedPosition != NULL)
-        *position = *savedPosition;
-    if (savedRotation != NULL)
-        *rotation = *savedRotation;
+    PositionAction current;
+    bufferBound = 20;
+    undoStatus = false;
+    if (currentPosition->pos == Quaternion(0,0,0,0)) 
+        return;
+    if (currentPosition != NULL){
+        // update the undo buffer before loading in position
+        current.position.pos = *position;
+        current.position.rot = *rotation;
+
+        *position = currentPosition->pos;
+        *rotation = currentPosition->rot;
+        
+        current.quickIndex = positionIndex;
+        current.type = LOAD;
+        posBuffer.actions[posBuffer.index] = current;
+        IncrementPositionBuffer();
+    }
     *velocity = Quaternion(0,0,0,0);
 }
 
