@@ -6,13 +6,12 @@ bleach in your eyes will not undo reading the code in
 - UnleashedRecomp/ui/speedometer.h
 - whatever else shows up in git diff
 
-# features i will definitely add:
-- ring editor
-- infinite boost
-- restart button (that doesnt crash your game lol)
+# need to do
+- fix the position load to respect camera perspectives
+- quickboot
 - more speedometer options
 
-# features that i probably am too dumb for:
+# i will never do
 - medals minimap
 - full gameobject semi-savestate loader
 - m speed indicator (i seriously can't even find this "airdrag" value)
