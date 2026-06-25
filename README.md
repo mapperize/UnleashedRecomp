@@ -6,6 +6,11 @@ bleach in your eyes will not undo reading the code in
 - UnleashedRecomp/ui/speedometer.h
 - whatever else shows up in git diff
 
+# thanks
+* [RadiantDerg](https://github.com/RadiantDerg) and [NextinMono](https://github.com/NextinMono) for the werehog transform offsets in the [multiplayer branch](https://github.com/RadiantDerg/UnleashedRecomp/tree/multiplayer)
+* [Hyperbx](https://github.com/hyperbx) and [EM20080](https://github.com/EM20080/) for the [freecam mod](https://github.com/EM20080/UnleashedRecomp)
+* [Skyth](https://github.com/blueskythlikesclouds) for the velocity and speed pointer
+
 # need to do
 - fix the position load to respect camera perspectives
 - quickboot
