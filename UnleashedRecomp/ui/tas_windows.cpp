@@ -233,8 +233,12 @@ void TASWindow::PositionManager(){
         if (DPAD_LEFT){
             ++debounceLeftIndex;
             if (debounceLeftIndex == 3) {
-                --positionIndex;
-                if (positionIndex < 0) positionIndex = 9;
+                // positionIndex is size_t now
+                if (positionIndex == 0) 
+                    positionIndex = 9;
+                else 
+                    --positionIndex;
+               
             }
             else if (debounceRightIndex > 3) debounceLeftIndex = 4;
         } else debounceLeftIndex = 0;
